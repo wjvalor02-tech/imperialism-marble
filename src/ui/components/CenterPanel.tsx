@@ -64,7 +64,7 @@ export default function CenterPanel({ game, rolling, busy }: { game: GameState; 
                 {busy ? (rolling ? '굴리는 중…' : '이동 중…') : mine ? '주사위 굴리기' : ctl?.waiting}
               </button>
             )}
-            {idle && p.heldCards.length > 0 && p.skipTurns === 0 && <p className="hint">보관한 황금열쇠는 오른쪽 패널에서 주사위 전에 쓸 수 있어요.</p>}
+            {idle && p.heldCards.length > 0 && p.skipTurns === 0 && <p className="hint">보관한 황금열쇠는 나라 현황 카드에서 주사위 전에 쓸 수 있어요.</p>}
           </div>
         )}
       </figure>

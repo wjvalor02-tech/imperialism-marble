@@ -1,6 +1,7 @@
 import { NATIONS } from '../../data/gameData';
 import { allianceOf, assetRow, currentPlayer, keyById, keyTitle, nationName, ownedColonies, won } from '../../engine/selectors';
 import type { GameState } from '../../engine/types';
+import { useCardVisibility } from '../useCardVisibility';
 import Flag from './Flag';
 
 const ACTIVE_USE = new Set(['WAR', 'SABOTAGE', 'SELL_COLONY', 'ALLIANCE']);
@@ -13,6 +14,7 @@ interface Props {
 
 export default function PlayerPanel({ game, canAct, onUseCard }: Props) {
   const cur = currentPlayer(game);
+  const canSee = useCardVisibility(game);
   return (
     <aside className="players" aria-label="제국 현황">
       {game.players.map((p) => {
@@ -41,7 +43,10 @@ export default function PlayerPanel({ game, canAct, onUseCard }: Props) {
                   {p.skipTurns > 0 && <span className="badge warn">⛓ 라이베리아 {p.skipTurns}턴</span>}
                   {al && <span className="badge ally">🤝 {nationName(al.a === p.id ? al.b : al.a)}과 동맹</span>}
                 </div>
-                {p.heldCards.length > 0 && (
+                {p.heldCards.length > 0 && !canSee(p.id) && (
+                  <div className="pkeys"><span className="keychip hidden-keys" title="카드 내용은 그 나라만 볼 수 있습니다">🔑 황금열쇠 {p.heldCards.length}장</span></div>
+                )}
+                {p.heldCards.length > 0 && canSee(p.id) && (
                   <div className="pkeys">
                     {p.heldCards.map((id) => {
                       const k = keyById(id);

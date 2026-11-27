@@ -3,7 +3,7 @@ import { QUIZZES } from '../data/quiz';
 import { addLog, declareBankrupt, transfer } from './money';
 import { randInt, shuffle } from './rng';
 import {
-  computeRanking, currentPlayer, getPlayer, investmentFor, isAllied, josa, keyById, keyTitle,
+  computeRanking, currentPlayer, getPlayer, investmentFor, isAllied, josa, keyById,
   nationName, tileName, won,
 } from './selectors';
 import { emptyColony } from './setup';
@@ -75,8 +75,9 @@ function apply(s: GameState, a: Action): boolean {
       if (!c.everOwned.includes(p.id)) c.everOwned.push(p.id);
       addLog(s, { kind: 'event', player: p.id, text: `🚩 ${nationName(p.id)}, ${col.name}을(를) 식민지로 확보` });
       notice(s, {
-        tone: 'history', icon: '📜', title: `${col.name} — ${nationName(p.id)}의 식민지가 되었습니다`,
-        lines: [col.history], note: `실제 역사에서의 지배국: ${col.historicalRuler}`, minMs: 3000, then: 'END_TURN',
+        tone: 'good', icon: '🚩', title: `${col.name} — ${nationName(p.id)}의 식민지가 되었습니다`,
+        lines: [`${won(col.price)}을 내고 ${col.name}을(를) 확보했습니다. 다른 나라가 이곳에 서면 무역대금 ${won(col.stages[0].toll)}을 받습니다.`],
+        note: `실제 역사에서의 지배국: ${col.historicalRuler}`, then: 'END_TURN',
       });
       return true;
     }
@@ -596,7 +597,8 @@ function noKeys(s: GameState) {
 function applyDrawn(s: GameState, id: string) {
   const p = currentPlayer(s);
   const k = keyById(id);
-  addLog(s, { kind: 'key', player: p.id, text: `🔑 ${nationName(p.id)} 황금열쇠: ${keyTitle(id)}` });
+  // 카드 내용은 뽑은 나라만 본다 → 공개 기록에는 종류를 남기지 않음 (사용할 때 공개됨)
+  addLog(s, { kind: 'key', player: p.id, text: `🔑 ${nationName(p.id)}, 황금열쇠를 뽑았습니다` });
   if (k.holdable) {
     p.heldCards.push(id);
     s.pending = { type: 'KEY_DRAWN', cardId: id, kept: true };

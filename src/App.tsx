@@ -3,6 +3,7 @@ import { joinRoom } from './net/client';
 import { startHost, stopHost } from './net/host';
 import { useNet } from './net/netStore';
 import { isClientTab, useGame, type GameMode } from './store/gameStore';
+import { startMusic, stopMusic } from './ui/music';
 import GameOverScreen from './ui/screens/GameOverScreen';
 import GameScreen from './ui/screens/GameScreen';
 import HostLobbyScreen from './ui/screens/HostLobbyScreen';
@@ -23,6 +24,16 @@ export default function App() {
   const [joining, setJoining] = useState(wantsJoin);
   // 새로고침 후 저장된 게임이 있으면 [이어하기]부터 묻는다 (그동안 타이머는 멈춤)
   const [askResume, setAskResume] = useState(() => !wantsJoin() && useGame.getState().game?.phase === 'PLAYING');
+
+  // 배경음악: 브라우저 정책상 첫 터치·클릭 뒤에 시작. 켜기/끄기 설정을 따른다
+  const musicOn = useGame((s) => s.musicOn);
+  useEffect(() => {
+    if (!musicOn) { stopMusic(); return; }
+    const go = () => startMusic();
+    window.addEventListener('pointerdown', go, { once: true });
+    window.addEventListener('keydown', go, { once: true });
+    return () => { window.removeEventListener('pointerdown', go); window.removeEventListener('keydown', go); };
+  }, [musicOn]);
 
   // 학생 탭: 새로고침해도 같은 방에 다시 접속
   useEffect(() => {

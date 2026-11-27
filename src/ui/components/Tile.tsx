@@ -1,7 +1,7 @@
 import { BOARD, COLONIES, NATIONS, SPECIAL_TILES } from '../../data/gameData';
 import { won } from '../../engine/selectors';
 import type { GameState, PlayerId } from '../../engine/types';
-import { gridPos, REGION, tileImage, tileTitle } from '../tileInfo';
+import { gridPos, REGION, tileImage, tileShortTitle, tileTitle } from '../tileInfo';
 import Flag from './Flag';
 
 interface Props {
@@ -53,7 +53,7 @@ export default function Tile({ index, game, occupied, onClick }: Props) {
         <img className="tile-img" src={img.src} alt="" style={{ objectFit: img.fit, objectPosition: img.pos ?? 'center' }} draggable={false} />
       )}
       <span className="tile-text">
-        <span className="tile-name">{tileTitle(index)}</span>
+        <span className="tile-name"><span className="full">{tileTitle(index)}</span><span className={`short ${tileShortTitle(index).length >= 5 ? 'long' : ''}`} aria-hidden>{tileShortTitle(index)}</span></span>
         {price && <span className="tile-price">{price}</span>}
         {owner && (
           <span className="tile-owner">

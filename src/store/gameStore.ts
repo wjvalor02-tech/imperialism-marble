@@ -26,6 +26,7 @@ interface Store {
   elapsedSec: number;
   timerRunning: boolean;
   muted: boolean;
+  musicOn: boolean;
   hostPin: string;
   reflections: Record<string, string>;
   newGame: (nations: PlayerId[], settings: Partial<Settings>, pin: string, session?: Session) => void;
@@ -35,6 +36,7 @@ interface Store {
   tick: () => void;
   setTimerRunning: (v: boolean) => void;
   setMuted: (v: boolean) => void;
+  setMusicOn: (v: boolean) => void;
   setReflection: (k: string, v: string) => void;
   setSession: (patch: Partial<Session>) => void;
 }
@@ -64,6 +66,7 @@ export const useGame = create<Store>()(
       elapsedSec: 0,
       timerRunning: true,
       muted: false,
+      musicOn: true,
       hostPin: '0000',
       reflections: {},
       newGame: (nations, settings, pin, session = DEFAULT_SESSION) =>
@@ -93,6 +96,7 @@ export const useGame = create<Store>()(
       },
       setTimerRunning: (v) => set({ timerRunning: v }),
       setMuted: (v) => set({ muted: v }),
+      setMusicOn: (v) => set({ musicOn: v }),
       setReflection: (k, v) => set((st) => ({ reflections: { ...st.reflections, [k]: v } })),
       setSession: (patch) => set((st) => ({ session: { ...st.session, ...patch } })),
     }),
@@ -101,7 +105,7 @@ export const useGame = create<Store>()(
       storage: createJSONStorage(() => guardedStorage),
       partialize: (st) => ({
         game: st.game, past: st.past, session: st.session, elapsedSec: st.elapsedSec, timerRunning: st.timerRunning,
-        muted: st.muted, hostPin: st.hostPin, reflections: st.reflections,
+        muted: st.muted, musicOn: st.musicOn, hostPin: st.hostPin, reflections: st.reflections,
       }),
     },
   ),

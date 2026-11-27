@@ -22,6 +22,13 @@ export const REGION: Record<Colony['region'], { name: string; color: string }> =
   oceania: { name: '오세아니아', color: '#2e8b57' },
 };
 
+/** 휴대폰처럼 좁은 화면에서 쓰는 짧은 칸 이름 (중간에서 줄이 바뀌지 않게) */
+const SHORT: Record<string, string> = {
+  '남아프리카 연방': '남아공', '오스트레일리아': '호주', '캐롤라인제도': '캐롤라인',
+  '중국의 반식민지화': '중국', '파쇼다 사건': '파쇼다', '시암(타이)': '시암', '인도차이나': '인도차이나',
+};
+export const tileShortTitle = (i: number) => SHORT[tileTitle(i)] ?? tileTitle(i);
+
 export function tileTitle(i: number): string {
   const t = BOARD[i];
   if (t.kind === 'start') return '출발';

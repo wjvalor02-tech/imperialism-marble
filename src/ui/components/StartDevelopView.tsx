@@ -32,7 +32,7 @@ export default function StartDevelopView({ game, pd }: { game: GameState; pd: Ex
           return (
             <label key={id} className={`dev-item ${on ? 'on' : ''}`} style={{ '--band': REGION[col.region].color } as React.CSSProperties}>
               <input type="checkbox" checked={on} onChange={() => toggle(id)} />
-              <span className="dev-name"><b>{col.name}</b><small>{nx.name}</small></span>
+              <span className="dev-name"><b>{col.name}</b><small>{nx.name}</small><span className="dev-desc">{col.history.split(/(?<=다\.)\s/)[0]}</span></span>
               <span className="dev-cost">{won(nx.cost)}</span>
               <span className="dev-toll">대금 {won(col.stages[c.stage].toll)} → <b>{won(nx.toll)}</b></span>
             </label>

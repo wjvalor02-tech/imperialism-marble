@@ -1,5 +1,6 @@
 import { onlineConfigured } from '../../net/transport';
-import type { GameMode } from '../../store/gameStore';
+import { useGame, type GameMode } from '../../store/gameStore';
+import { startMusic } from '../music';
 
 /** 첫 화면: 배경 일러스트 + 게임 방식 고르기 */
 export default function ModeScreen({ onPick, onJoin }: { onPick: (m: GameMode) => void; onJoin: () => void }) {
@@ -26,6 +27,16 @@ export default function ModeScreen({ onPick, onJoin }: { onPick: (m: GameMode) =
         </div>
       </div>
       <button className="link-btn" onClick={() => onPick('hotseat')}>인터넷 없이 한 화면에서 돌아가며 하기 →</button>
+      <MusicToggle />
     </main>
+  );
+}
+
+function MusicToggle() {
+  const { musicOn, setMusicOn } = useGame();
+  return (
+    <button className="music-toggle" onClick={() => { if (!musicOn) startMusic(); setMusicOn(!musicOn); }}>
+      {musicOn ? '🎵 배경음악 켜짐' : '🎵 배경음악 꺼짐'}
+    </button>
   );
 }

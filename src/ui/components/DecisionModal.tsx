@@ -2,7 +2,11 @@ import { COLONIES, NATIONS, SPECIAL_TILES } from '../../data/gameData';
 import { canApply } from '../../engine/reducer';
 import { currentPlayer, getPlayer, josa, keyById, keyTitle, nationName, tileName, won } from '../../engine/selectors';
 import type { GameState } from '../../engine/types';
+import { useState } from 'react';
 import { useGame } from '../../store/gameStore';
+import { useControlCtx } from '../controlContext';
+import { useCardVisibility } from '../useCardVisibility';
+import ColonyIntro from './ColonyIntro';
 import { tileImage, TILE_IMAGE } from '../tileInfo';
 import DebtView from './DebtView';
 import Flag from './Flag';
@@ -16,8 +20,24 @@ import StartDevelopView from './StartDevelopView';
 
 export default function DecisionModal({ game }: { game: GameState }) {
   const dispatch = useGame((s) => s.dispatch);
+  const ctl = useControlCtx();
+  const canSee = useCardVisibility(game);
+  // 이 기기에서 설명 카드를 이미 넘겼는지 / 한 화면 모드에서 카드를 펼쳤는지 (결정마다 logSeq가 다름)
+  const [introSeq, setIntroSeq] = useState(-1);
+  const [revealSeq, setRevealSeq] = useState(-1);
   const pd = game.pending;
   if (!pd) return null;
+  const mine = ctl?.canControl ?? true;
+  const intro = (colonyId: string, kind: 'buy' | 'develop') =>
+    mine && introSeq !== game.logSeq ? (
+      <Modal decision label="식민지 설명" tone="history" wide>
+        <div className="m-who"><Flag id={p.id} size={22} /> {NATIONS[p.id].name}의 차례</div>
+        <ColonyIntro game={game} colonyId={colonyId} kind={kind} onNext={() => setIntroSeq(game.logSeq)} />
+      </Modal>
+    ) : null;
+  // 황금열쇠: 이 기기가 볼 수 있는지, 한 화면 모드면 펼치기 전인지
+  const keyVisible = canSee(currentPlayer(game).id);
+  const keyGate = keyVisible && !!ctl?.hotseat && revealSeq !== game.logSeq;
   const p = currentPlayer(game);
   const me = NATIONS[p.id];
   const who = (
@@ -26,6 +46,8 @@ export default function DecisionModal({ game }: { game: GameState }) {
 
   switch (pd.type) {
     case 'BUY': {
+      const first = intro(pd.colonyId, 'buy');
+      if (first) return first;
       const col = COLONIES[pd.colonyId];
       const ok = p.money >= col.price;
       return (
@@ -45,6 +67,8 @@ export default function DecisionModal({ game }: { game: GameState }) {
       );
     }
     case 'DEVELOP': {
+      const first = intro(pd.colonyId, 'develop');
+      if (first) return first;
       const col = COLONIES[pd.colonyId];
       const c = game.colonies[pd.colonyId];
       const next = col.stages[c.stage + 1];
@@ -122,6 +146,22 @@ export default function DecisionModal({ game }: { game: GameState }) {
       );
     case 'KEY_DRAWN': {
       const k = keyById(pd.cardId);
+      const nation = NATIONS[p.id].name;
+      if (!keyVisible || keyGate) {
+        return (
+          <Modal decision label="황금열쇠" tone="gold">
+            {who}
+            <KeyCard cardId={pd.cardId} hidden />
+            <p className="m-line center">{josa(`${nation}이(가) 황금열쇠를 뽑았습니다.`)}</p>
+            <p className="m-note">카드 내용은 {nation}만 볼 수 있습니다.{k.holdable ? ' 보관했다가 쓸 때 다른 나라에 공개됩니다.' : ''}</p>
+            <div className="btn-row">
+              {keyGate
+                ? <button className="btn gold big" onClick={() => setRevealSeq(game.logSeq)} autoFocus>{nation} 모둠만 보기</button>
+                : <button className="btn primary big" onClick={() => dispatch({ type: 'ACK' })} autoFocus>확인</button>}
+            </div>
+          </Modal>
+        );
+      }
       return (
         <Modal decision label="황금열쇠" tone="gold">
           {who}
@@ -132,8 +172,8 @@ export default function DecisionModal({ game }: { game: GameState }) {
               : k.effect === 'LOAN' ? `국제은행에서 ${won(k.gain ?? 0)}을 빌렸습니다. 출발을 지날 때마다 ${won(game.settings.loanRepayment)}씩 갚습니다.`
                 : `${won(k.gain ?? 0)}을 얻었습니다.`}
           </p>
-          {k.effect === 'EXPLOIT' && <p className="m-note reflect">📝 실제로는 강제노동·세금 강화로 현지인의 삶이 악화되었다.</p>}
-          <div className="btn-row"><button className="btn primary big" onClick={() => dispatch({ type: 'ACK' })} autoFocus>확인</button></div>
+          {k.effect === 'EXPLOIT' && <p className="m-note reflect">실제로는 강제노동·세금 강화로 현지인의 삶이 악화되었다.</p>}
+          <div className="btn-row"><button className="btn primary big" onClick={() => dispatch({ type: 'ACK' })} autoFocus>확인{ctl?.hotseat ? ' (카드 덮기)' : ''}</button></div>
         </Modal>
       );
     }
@@ -142,9 +182,14 @@ export default function DecisionModal({ game }: { game: GameState }) {
         <Modal decision label="황금열쇠 선택" tone="gold" wide>
           {who}
           <h2 className="m-title">황금열쇠 한 장을 고르세요</h2>
-          <div className="key-choice">
-            {pd.cardIds.map((id) => <KeyCard key={id} cardId={id} onClick={() => dispatch({ type: 'CHOOSE_KEY', cardId: id })} />)}
-          </div>
+          {(!keyVisible || keyGate) && <p className="m-note">카드 내용은 {NATIONS[p.id].name}만 볼 수 있습니다.</p>}
+          {keyGate
+            ? <div className="btn-row"><button className="btn gold big" onClick={() => setRevealSeq(game.logSeq)} autoFocus>{NATIONS[p.id].name} 모둠만 보기</button></div>
+            : (
+              <div className="key-choice">
+                {pd.cardIds.map((id) => <KeyCard key={id} cardId={id} hidden={!keyVisible} onClick={() => dispatch({ type: 'CHOOSE_KEY', cardId: id })} />)}
+              </div>
+            )}
         </Modal>
       );
     case 'QUIZ':

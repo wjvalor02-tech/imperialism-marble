@@ -4,12 +4,13 @@ import type { GameState } from '../../engine/types';
 import { leaveRoom } from '../../net/client';
 import { useNet } from '../../net/netStore';
 import { useGame } from '../../store/gameStore';
+import { startMusic } from '../music';
 import Flag from './Flag';
 
 const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
 
 export default function TopBar({ game, onHost }: { game: GameState; onHost: () => void }) {
-  const { elapsedSec, timerRunning, muted, setMuted, session } = useGame();
+  const { elapsedSec, timerRunning, muted, setMuted, session, musicOn, setMusicOn } = useGame();
   const { role, myNation, room, status, kind } = useNet();
   const limit = game.settings.timeLimitMinutes * 60;
   const left = Math.max(0, limit - elapsedSec);
@@ -31,7 +32,8 @@ export default function TopBar({ game, onHost }: { game: GameState; onHost: () =
         ) : <>경과 {mmss(elapsedSec)}</>}
       </div>
       <div className="top-actions">
-        <button className="btn small" onClick={() => setMuted(!muted)} aria-label={muted ? '소리 켜기' : '소리 끄기'}>{muted ? '🔇' : '🔊'}</button>
+        <button className={`btn small ${musicOn ? '' : 'off'}`} onClick={() => { if (!musicOn) startMusic(); setMusicOn(!musicOn); }} aria-label={musicOn ? '배경음악 끄기' : '배경음악 켜기'} title="배경음악">🎵</button>
+        <button className="btn small" onClick={() => setMuted(!muted)} aria-label={muted ? '효과음 켜기' : '효과음 끄기'} title="효과음">{muted ? '🔇' : '🔊'}</button>
         {role === 'client'
           ? <button className="btn small" onClick={() => askConfirm('방에서 나갈까요? (다시 코드를 입력하면 같은 나라로 돌아올 수 있어요)', leaveRoom, '나가기')}>나가기</button>
           : <button className="btn small" onClick={onHost}>진행자</button>}

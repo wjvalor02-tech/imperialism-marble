@@ -59,7 +59,8 @@ export function useMoveAnimation(game: GameState) {
       path.forEach((pos, i) => {
         timers.push(window.setTimeout(() => {
           setDisp((d) => ({ ...d, [player]: pos }));
-          sound.step();
+          sound.footstep(0);
+          timers.push(window.setTimeout(() => sound.footstep(1), STEP_MS / 2));
           if (i === path.length - 1) timers.push(window.setTimeout(finish, STEP_MS + 120));
         }, i * STEP_MS + 30));
       });
