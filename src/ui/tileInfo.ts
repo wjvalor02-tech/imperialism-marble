@@ -7,11 +7,11 @@ import siamImg from '../assets/tiles/siam.jpg';
 
 // 원본 PPT처럼 특별 칸에 넣는 그림 (빌드 시 HTML 안에 포함됨)
 export const TILE_IMAGE: Partial<Record<string, { src: string; alt: string; fit: 'cover' | 'contain'; pos?: string }>> = {
-  ethiopia: { src: ethiopiaImg, alt: '에티오피아 국기 모양 지도', fit: 'contain' },
-  siam: { src: siamImg, alt: '타이(시암) 국기', fit: 'cover' },
-  liberia: { src: liberiaImg, alt: '라이베리아 국기', fit: 'contain' }, // 국기 전체가 보이게
-  china: { src: chinaImg, alt: '중국이라는 파이를 나누는 열강 풍자화(1898)', fit: 'cover', pos: 'center 30%' },
-  fashoda: { src: fashodaImg, alt: '파쇼다 사건 풍자화', fit: 'cover', pos: 'center 30%' },
+  ethiopia: { src: ethiopiaImg, alt: '에티오피아 국기 모양 지도', fit: 'cover', pos: 'center 55%' },
+  siam: { src: siamImg, alt: '타이(시암) 국기', fit: 'cover', pos: 'center' },
+  liberia: { src: liberiaImg, alt: '라이베리아 국기', fit: 'cover', pos: 'left center' }, // 별이 있는 왼쪽이 보이게
+  china: { src: chinaImg, alt: '중국이라는 파이를 나누는 열강 풍자화(1898)', fit: 'cover', pos: 'center 45%' },
+  fashoda: { src: fashodaImg, alt: '파쇼다 사건 풍자화', fit: 'cover', pos: 'center 40%' },
 };
 export const tileImage = (i: number) => TILE_IMAGE[BOARD[i].kind];
 

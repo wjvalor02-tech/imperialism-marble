@@ -52,7 +52,7 @@ export interface Charge {
 }
 
 /** 결정이 끝난 뒤 이어서 할 일 */
-export type Continuation = 'END_TURN' | 'RESOLVE_TILE' | 'SIAM_JUMP' | 'RESUME' | 'START_DEV';
+export type Continuation = 'END_TURN' | 'RESOLVE_TILE' | 'SIAM_JUMP' | 'RESUME' | 'START_DEV' | 'DRAW_KEY';
 
 export type NoticeTone = 'info' | 'good' | 'bad' | 'history' | 'reflect';
 

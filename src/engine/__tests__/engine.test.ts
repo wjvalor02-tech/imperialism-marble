@@ -204,10 +204,27 @@ describe('특수칸', () => {
     s = act(s, { type: 'ACK' });
     expect(money(s, 'UK')).toBe(450);
     getPlayer(s, 'FRANCE').position = 20;
+    s.deck = [keyId('WAR')];
+    s.discard = [];
     s = roll(s, 1);
     s = act(s, { type: 'ACK' });
     expect(money(s, 'FRANCE')).toBe(480);
     expect(s.chinaPool).toBe(20);
+    // 중국 칸: 납부 후 황금열쇠를 뽑는다
+    expect(s.pending).toMatchObject({ type: 'KEY_DRAWN', cardId: keyId('WAR'), kept: true });
+    expect(getPlayer(s, 'FRANCE').heldCards).toEqual([keyId('WAR')]);
+  });
+
+  it('중국 칸에서 돈이 모자라 파산하면 황금열쇠는 뽑지 않는다', () => {
+    let s = newGame();
+    getPlayer(s, 'UK').position = 20;
+    getPlayer(s, 'UK').money = 10;
+    s = roll(s, 1);
+    s = act(s, { type: 'ACK' });
+    expect(s.pending?.type).toBe('DEBT');
+    s = act(s, { type: 'DECLARE_BANKRUPTCY' });
+    expect(getPlayer(s, 'UK').bankrupt).toBe(true);
+    expect(s.pending).toBeNull();
   });
 
   it('파쇼다: 영국은 프랑스에 200만원을 주고 점령, 이후 다른 나라는 100만원', () => {

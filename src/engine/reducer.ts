@@ -380,6 +380,7 @@ function cont(s: GameState, then: Continuation) {
   else if (then === 'RESOLVE_TILE') resolveTile(s);
   else if (then === 'SIAM_JUMP') siamJump(s);
   else if (then === 'START_DEV') offerStartDevelop(s);
+  else if (then === 'DRAW_KEY') drawKey(s);
 }
 
 /** 이번 바퀴에 아직 개발하지 않은, 더 올릴 단계가 있는 내 식민지 */
@@ -484,7 +485,7 @@ function resolveTile(s: GameState) {
     case 'china': {
       const t = SPECIAL_TILES.china;
       notice(s, { tone: 'history', icon: '🏯', title: t.name, lines: [t.text], note: t.historyNote,
-        charges: [{ to: 'CHINA_POOL', amount: t.fee, reason: '중국 공동 식민통치기구 납부' }], then: 'END_TURN' });
+        charges: [{ to: 'CHINA_POOL', amount: t.fee, reason: '중국 공동 식민통치기구 납부' }], then: 'DRAW_KEY' }); // 납부 후 황금열쇠
       return;
     }
     case 'liberia': {

@@ -29,7 +29,8 @@ export default function Tile({ index, game, occupied, onClick }: Props) {
   } else if (t.kind === 'fashoda') {
     owner = game.fashoda.owner;
     price = owner ? `대금 ${won(SPECIAL_TILES.fashoda.toll)}` : '황금열쇠';
-  } else if (t.kind === 'ethiopia' || t.kind === 'china') price = `−${won(SPECIAL_TILES[t.kind].fee)}`;
+  } else if (t.kind === 'ethiopia') price = `−${won(SPECIAL_TILES.ethiopia.fee)}`;
+  else if (t.kind === 'china') price = `−${won(SPECIAL_TILES.china.fee)} · 황금열쇠`;
   else if (t.kind === 'start') price = `통행료 ${won(game.settings.passStartToll)}`;
   else if (t.kind === 'liberia') price = '3턴 휴식';
   else if (t.kind === 'siam') price = '내 식민지로';

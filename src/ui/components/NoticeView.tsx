@@ -20,7 +20,7 @@ export default function NoticeView({ n, onOk, image }: { n: Notice; onOk: () => 
       {n.note && <p className={`m-note ${n.tone === 'reflect' ? 'reflect' : ''}`}>{n.note}</p>}
       <div className="btn-row">
         <button className="btn primary big" disabled={left > 0} onClick={onOk} autoFocus>
-          {left > 0 ? `읽는 중… ${left}` : total ? `${won(total)} 납부하고 확인` : n.then === 'SIAM_JUMP' ? '이동하기' : '확인'}
+          {left > 0 ? `읽는 중… ${left}` : total ? `${won(total)} 납부하고 ${n.then === 'DRAW_KEY' ? '황금열쇠 뽑기' : '확인'}` : n.then === 'SIAM_JUMP' ? '이동하기' : '확인'}
         </button>
       </div>
     </>
