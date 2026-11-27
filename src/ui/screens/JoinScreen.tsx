@@ -25,7 +25,7 @@ export default function JoinScreen() {
           <button type="button" className="btn small back" onClick={() => leaveRoom()}>← 처음으로</button>
           <p className="mode-title">모둠모드 — 방 참여하기</p>
           <label className="field big-field">선생님 화면의 방 코드 (6자리)
-            <input value={code} maxLength={6} autoFocus autoCapitalize="characters" placeholder="예: K7M2QX"
+            <input value={code} maxLength={6} size={6} autoFocus autoCapitalize="characters" autoComplete="off" autoCorrect="off" spellCheck={false} placeholder="K7M2QX"
               onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} />
           </label>
           <button className="btn primary huge" type="submit" disabled={code.length !== 6}>참여하기</button>

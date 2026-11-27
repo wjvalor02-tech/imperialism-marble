@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ROLL_MS } from '../useMoveAnimation';
 
 /** 3D 주사위: CSS 정육면체. 굴리면 여러 바퀴 돌다가 나온 눈이 앞면에 오도록 멈춘다. */
 
@@ -14,7 +15,6 @@ const PIPS: Record<number, [number, number][]> = {
 // 각 눈이 앞(시청자 쪽)을 보게 하는 정육면체 회전 [rotateX, rotateY]
 // 면 배치: 1 앞, 6 뒤, 3 오른쪽, 4 왼쪽, 2 위, 5 아래 (마주 보는 면의 합 = 7)
 const FACE_ROT: Record<number, [number, number]> = { 1: [0, 0], 6: [0, 180], 3: [0, -90], 4: [0, 90], 2: [-90, 0], 5: [90, 0] };
-const ROLL_MS = 1000;
 
 interface Props {
   value: number | undefined;

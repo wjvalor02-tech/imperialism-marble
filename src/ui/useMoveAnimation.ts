@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { GameState, PlayerId } from '../engine/types';
 import { sound } from './sound';
 
-const ROLL_MS = 1000;
+export const ROLL_MS = 1400; // 주사위 굴림 연출·소리 길이
 export const STEP_MS = 280; // 한 칸 걷는 시간
 
 const positions = (g: GameState) => Object.fromEntries(g.players.map((p) => [p.id, p.position])) as Record<PlayerId, number>;

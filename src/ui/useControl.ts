@@ -19,7 +19,8 @@ export function useControl(game: GameState): Control {
   const actor = actorOf(game);
   const isAi = session.ai.includes(actor);
   const name = NATIONS[actor].name;
-  const who = isAi ? `${name} AI` : session.names?.[actor] ? `${name}(${session.names[actor]})` : `${name} 모둠`;
+  // AI가 두는 나라도 게임 중에는 나라 이름만 보여 준다 (예: "프랑스가 결정하는 중…")
+  const who = isAi ? name : session.names?.[actor] ? `${name}(${session.names[actor]})` : `${name} 모둠`;
   // 조사는 마지막 한글 글자의 받침으로 고른다 (예: '프랑스(3모둠)' → 둠 → '이')
   const last = [...who].reverse().find((ch) => /[가-힣]/.test(ch)) ?? '가';
   const waiting = `${who}${(last.charCodeAt(0) - 0xac00) % 28 ? '이' : '가'} 결정하는 중…`;

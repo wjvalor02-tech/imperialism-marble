@@ -20,7 +20,7 @@ export default function TopBar({ game, onHost }: { game: GameState; onHost: () =
     <header className="topbar">
       <div className="brand">제국주의 마블</div>
       {me && <span className="me-badge"><Flag id={me} size={18} /> 나: {NATIONS[me].name}</span>}
-      {session.mode === 'single' && role !== 'client' && <span className="mode-badge">싱글모드 · AI 3개국</span>}
+      {session.mode === 'single' && role !== 'client' && <span className="mode-badge">싱글모드</span>}
       {(role === 'host' || role === 'client') && room && (
         <span className={`mode-badge ${status === 'error' ? 'bad' : ''}`}>
           모둠모드 · 방 {room}{kind === 'local' ? ' (시험 연결)' : ''}{status === 'error' ? ' · 연결 끊김' : ''}

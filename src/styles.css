@@ -459,8 +459,8 @@ button.mode-card:hover { transform: translateY(-3px); box-shadow: 0 22px 50px rg
 .f4 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
 .f2 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
 .f5 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
-.die3d-wrap.bouncing .die3d-tilt { animation: diceHop 1s ease-out; }
-.die3d-wrap.bouncing::after { animation: diceShadow 1s ease-out; }
+.die3d-wrap.bouncing .die3d-tilt { animation: diceHop 1.4s ease-out; }
+.die3d-wrap.bouncing::after { animation: diceShadow 1.4s ease-out; }
 @keyframes diceHop {
   0% { translate: 0 0; } 18% { translate: 0 -3.2cqw; } 40% { translate: 0 0; } 55% { translate: 0 -1.3cqw; }
   70% { translate: 0 0; } 82% { translate: 0 -.4cqw; } 100% { translate: 0 0; } }
@@ -713,4 +713,21 @@ body { word-break: keep-all; overflow-wrap: anywhere; }
   .pbadges .badge, .keychip { font-size: 11px; padding: 2px 6px; }
   .keychip small { display: none; }
   .modal, .modal.wide { width: min(560px, 100%); }
+}
+
+/* 방 코드 입력: 어떤 화면에서도 카드 안에 맞게 */
+.setup-card { min-width: 0; max-width: 100%; }
+.big-field { width: 100%; min-width: 0; }
+.big-field input { width: 100%; min-width: 0; box-sizing: border-box; font-size: clamp(26px, 8vw, 40px); letter-spacing: .2em; text-indent: .2em; padding: 10px 6px; }
+.big-field input::placeholder { color: #c9bfae; letter-spacing: .2em; }
+
+/* 앱 안 브라우저 안내 */
+.inapp-banner { position: fixed; left: 8px; right: 8px; top: 8px; z-index: 90; background: #fff6d6; color: var(--ink); border: 2px solid #c9a227;
+  border-radius: 14px; padding: 10px 12px; box-shadow: 0 10px 30px rgba(0,0,0,.35); display: grid; gap: 8px; max-width: 620px; margin: 0 auto; }
+.inapp-banner p { margin: 0; display: grid; gap: 2px; font-size: 15px; }
+.inapp-banner p span { font-size: 14px; color: var(--ink-2); }
+.inapp-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.inapp-actions .btn { flex: 1 1 auto; }
+@media (max-width: 700px) {
+  .setup-card form, form.setup-card { width: 100%; }
 }
