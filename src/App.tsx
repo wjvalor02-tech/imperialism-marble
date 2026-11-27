@@ -3,7 +3,8 @@ import { joinRoom } from './net/client';
 import { startHost, stopHost } from './net/host';
 import { useNet } from './net/netStore';
 import { isClientTab, useGame, type GameMode } from './store/gameStore';
-import { startMusic, stopMusic } from './ui/music';
+import { installAudioUnlock } from './ui/audio';
+import { isMusicPlaying, startMusic, stopMusic } from './ui/music';
 import GameOverScreen from './ui/screens/GameOverScreen';
 import GameScreen from './ui/screens/GameScreen';
 import HostLobbyScreen from './ui/screens/HostLobbyScreen';
@@ -28,11 +29,9 @@ export default function App() {
   // 배경음악: 브라우저 정책상 첫 터치·클릭 뒤에 시작. 켜기/끄기 설정을 따른다
   const musicOn = useGame((s) => s.musicOn);
   useEffect(() => {
-    if (!musicOn) { stopMusic(); return; }
-    const go = () => startMusic();
-    window.addEventListener('pointerdown', go, { once: true });
-    window.addEventListener('keydown', go, { once: true });
-    return () => { window.removeEventListener('pointerdown', go); window.removeEventListener('keydown', go); };
+    if (!musicOn) stopMusic();
+    // 탭할 때마다 오디오를 깨우고(휴대폰), 음악이 켜져 있으면 시작
+    return installAudioUnlock(() => { if (useGame.getState().musicOn && !isMusicPlaying()) startMusic(); });
   }, [musicOn]);
 
   // 학생 탭: 새로고침해도 같은 방에 다시 접속

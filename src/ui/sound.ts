@@ -1,16 +1,14 @@
 // 외부 파일 없이 Web Audio로 만든 짧은 효과음
 import { useGame } from '../store/gameStore';
+import { getCtx } from './audio';
 
-let ctx: AudioContext | null = null;
+// 배경음악과 같은 오디오 장치를 쓴다 (휴대폰에서는 첫 탭 때 깨워 둔 것)
 function ac(): AudioContext | null {
   if (useGame.getState().muted) return null;
-  try {
-    ctx ??= new AudioContext();
-    if (ctx.state === 'suspended') void ctx.resume();
-    return ctx;
-  } catch {
-    return null;
-  }
+  const c = getCtx();
+  if (!c) return null;
+  if (c.state === 'suspended') void c.resume();
+  return c;
 }
 
 function tone(freq: number, start: number, dur: number, type: OscillatorType = 'sine', vol = 0.15) {

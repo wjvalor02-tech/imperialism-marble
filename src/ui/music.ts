@@ -3,6 +3,8 @@
 // - 낮은 드론 + 저음 현악 오스티나토(Dm–B♭–Gm–A, 마지막 A에서 긴장)
 // - 마디마다 팀파니, 군악 스네어, 느리게 깔리는 현악 화음, 홀 잔향
 
+import { getCtx } from './audio';
+
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let wet: GainNode | null = null;
@@ -129,11 +131,8 @@ function schedule() {
 
 export function startMusic() {
   if (timer !== null) return;
-  try {
-    ctx ??= new AudioContext();
-  } catch {
-    return;
-  }
+  ctx = getCtx();
+  if (!ctx) return;
   const c = ctx;
   void c.resume();
   master = c.createGain();
