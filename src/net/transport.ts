@@ -12,7 +12,9 @@ export interface Transport {
   close: () => void;
 }
 
-const SB_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+// 프로젝트 주소만 필요하다 (https://xxxx.supabase.co). 대시보드에서 REST 주소(…/rest/v1/)를
+// 복사해 넣어도 동작하도록 뒤쪽 경로와 슬래시를 떼어 낸다.
+const SB_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
 const SB_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const onlineConfigured = Boolean(SB_URL && SB_KEY);
 
