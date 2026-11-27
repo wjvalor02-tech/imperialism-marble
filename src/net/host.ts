@@ -92,7 +92,7 @@ function onMsg(m: NetMsg) {
       return;
     }
     case 'leave': {
-      if (game) return; // 게임 중 나가면 자리는 남겨 둔다 (진행자가 AI로 넘길 수 있음)
+      if (game) return; // 게임 중 나가면 자리는 남겨 둔다 (관리 화면에서 AI로 넘길 수 있음)
       const seats = { ...net.seats };
       for (const k of ORDER) if (seats[k] === m.from) delete seats[k];
       net.set({ seats });

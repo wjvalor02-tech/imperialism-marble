@@ -36,7 +36,7 @@ export default function TopBar({ game, onHost }: { game: GameState; onHost: () =
         <button className="btn small" onClick={() => setMuted(!muted)} aria-label={muted ? '효과음 켜기' : '효과음 끄기'} title="효과음">{muted ? '🔇' : '🔊'}</button>
         {role === 'client'
           ? <button className="btn small" onClick={() => askConfirm('방에서 나갈까요? (다시 코드를 입력하면 같은 나라로 돌아올 수 있어요)', leaveRoom, '나가기')}>나가기</button>
-          : <button className="btn small" onClick={onHost}>진행자</button>}
+          : <button className="btn small" onClick={onHost} title="되돌리기·설정·거래 기록">⚙ 관리</button>}
       </div>
     </header>
   );

@@ -8,31 +8,15 @@ import Flag from './Flag';
 import Modal from './Modal';
 
 type Tab = 'memo' | 'log' | 'adjust' | 'settings';
-const KIND_LABEL: Record<LogKind, string> = { money: '돈', event: '사건', key: '황금열쇠', host: '진행자', turn: '차례' };
+const KIND_LABEL: Record<LogKind, string> = { money: '돈', event: '사건', key: '황금열쇠', host: '조정', turn: '차례' };
 
 export default function HostPanel({ game, onClose }: { game: GameState; onClose: () => void }) {
-  const store = useGame();
-  const [unlocked, setUnlocked] = useState(false);
-  const [pin, setPin] = useState('');
   const [tab, setTab] = useState<Tab>('memo');
 
-  if (!unlocked) {
-    return (
-      <Modal label="진행자 PIN" onClose={onClose}>
-        <h2 className="m-title">🏦 진행자(국제은행) 모드</h2>
-        <form className="pin-form" onSubmit={(e) => { e.preventDefault(); if (pin === store.hostPin) setUnlocked(true); else setPin(''); }}>
-          <label htmlFor="pin">4자리 PIN</label>
-          <input id="pin" type="password" inputMode="numeric" maxLength={4} value={pin} autoFocus onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
-          <button className="btn primary big" type="submit">들어가기</button>
-          <p className="muted">처음 PIN은 게임 설정 화면에서 정합니다 (기본 0000).</p>
-        </form>
-      </Modal>
-    );
-  }
-
   return (
-    <Modal label="진행자 모드" onClose={onClose} wide>
-      <h2 className="m-title">🏦 진행자(국제은행) 모드</h2>
+    <Modal label="게임 관리" onClose={onClose} wide>
+      <h2 className="m-title">⚙ 게임 관리</h2>
+      <p className="muted">국제은행(돈 계산)은 자동으로 처리됩니다. 문제가 생겼을 때 되돌리기·설정·수동 조정을 쓸 수 있습니다.</p>
       <nav className="tabs" role="tablist">
         {([['memo', '메모판'], ['log', '거래 로그'], ['adjust', '수동 조정'], ['settings', '설정·되돌리기']] as [Tab, string][]).map(([k, l]) => (
           <button key={k} role="tab" aria-selected={tab === k} className={`tab ${tab === k ? 'on' : ''}`} onClick={() => setTab(k)}>{l}</button>
@@ -123,7 +107,7 @@ function Adjust({ game }: { game: GameState }) {
   const [reason, setReason] = useState('');
   const [msg, setMsg] = useState('');
   const c = game.colonies[colony];
-  const run = (ok: boolean) => { setMsg(ok ? '✅ 반영되었습니다 (로그에 진행자 조정으로 기록)' : '⚠ 반영할 수 없습니다. 사유를 입력했는지 확인하세요.'); if (ok) setReason(''); };
+  const run = (ok: boolean) => { setMsg(ok ? '✅ 반영되었습니다 (로그에 수동 조정으로 기록)' : '⚠ 반영할 수 없습니다. 사유를 입력했는지 확인하세요.'); if (ok) setReason(''); };
 
   return (
     <div className="adjust">
@@ -183,7 +167,7 @@ function SettingsView({ game, onClose }: { game: GameState; onClose: () => void 
           {session.mode === 'online' && (
             <label className="field check">
               <input type="checkbox" checked={!!session.hostTakeover} onChange={(e) => setSession({ hostTakeover: e.target.checked })} />
-              진행자가 이 화면에서 대신 조작 (학생 기기 연결이 끊겼을 때)
+              이 화면(전자칠판)에서 대신 조작 (학생 기기 연결이 끊겼을 때)
             </label>
           )}
         </fieldset>

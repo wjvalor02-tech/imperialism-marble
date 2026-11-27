@@ -248,7 +248,7 @@ button.keycard { cursor: pointer; }
 .btn.target { flex-direction: row; flex-wrap: wrap; gap: 6px; font-size: 18px; justify-content: flex-start; text-align: left; }
 .btn.target small { width: 100%; }
 
-/* ── 진행자 ───────────────────────── */
+/* ── 관리 화면 ───────────────────────── */
 .pin-form { display: grid; gap: 12px; justify-items: center; }
 .pin-form input { font-size: 36px; width: 180px; text-align: center; letter-spacing: .4em; padding: 8px; border-radius: 10px; border: 2px solid var(--ink); }
 .tabs { display: flex; gap: 6px; border-bottom: 2px solid var(--ink); margin-bottom: 12px; flex-wrap: wrap; }
@@ -610,7 +610,7 @@ body { word-break: keep-all; overflow-wrap: anywhere; }
   .waiting-banner { font-size: 13px; }
   .colony-intro .intro-band { font-size: 13px; }
 
-  /* 진행자 창 */
+  /* 관리 창 */
   .tabs { gap: 4px; }
   .tab { padding: 6px 10px; font-size: 14px; }
   .memo-table, .compare-table { font-size: 13px; }
@@ -749,4 +749,13 @@ body { word-break: keep-all; overflow-wrap: anywhere; }
   /* 휴대폰: 그림 칸은 이름만 (금액은 칸을 누르면 보임), 말에 가리지 않게 글자 띠를 얇게 */
   .img-tile .tile-price, .img-tile .tile-owner { display: none; }
   .img-tile .tile-text, .img-tile.occupied .tile-text { padding: .4cqw .2cqw 1.6cqw; }
+}
+
+/* 출발 칸: 나아가는 방향(위쪽) 화살표 */
+.start-arrow { width: 4.2cqw; height: 5cqw; fill: var(--accent); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; margin: .2cqw 0; }
+/* 휴대폰: 긴 이름(캐롤라인제도·중국의 반식민지화)은 글자를 줄여 그대로 쓴다 */
+@media (max-width: 700px), (orientation: landscape) and (max-height: 560px) {
+  .tile-name .short.xlong { font-size: 2.15cqw; letter-spacing: -.06em; }
+  .img-tile .tile-name .short.xlong { font-size: 2.3cqw; }
+  .start-arrow { width: 5.5cqw; height: 6.5cqw; }
 }

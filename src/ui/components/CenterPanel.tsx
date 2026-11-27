@@ -55,7 +55,7 @@ export default function CenterPanel({ game, rolling, busy }: { game: GameState; 
                 <div className="btn-row">
                   <button className="btn" onClick={() => dispatch({ type: 'LIBERIA_WAIT' })}>이번 턴 쉬기</button>
                   <button className="btn primary" onClick={() => dispatch({ type: 'LIBERIA_PENALTY_DONE' })}>
-                    엉덩이로 이름쓰기 완료<small>진행자 확인</small>
+                    엉덩이로 이름쓰기 완료<small>바로 탈출</small>
                   </button>
                 </div>
               </div>

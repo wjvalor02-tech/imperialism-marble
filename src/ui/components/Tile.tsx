@@ -54,7 +54,12 @@ export default function Tile({ index, game, occupied, onClick }: Props) {
         <img className="tile-img" src={img.src} alt="" style={{ objectFit: img.fit, objectPosition: img.pos ?? 'center' }} draggable={false} />
       )}
       <span className="tile-text">
-        <span className="tile-name"><span className="full">{tileTitle(index)}</span><span className={`short ${tileShortTitle(index).length >= 5 ? 'long' : ''}`} aria-hidden>{tileShortTitle(index)}</span></span>
+        <span className="tile-name"><span className="full">{tileTitle(index)}</span><span className={`short ${tileShortTitle(index).length >= 6 ? 'long xlong' : tileShortTitle(index).length >= 5 ? 'long' : ''}`} aria-hidden>{tileShortTitle(index)}</span></span>
+        {t.kind === 'start' && (
+          <svg className="start-arrow" viewBox="0 0 40 48" aria-hidden>
+            <path d="M20 2 L38 22 H27 V46 H13 V22 H2 Z" />
+          </svg>
+        )}
         {price && <span className="tile-price">{price}</span>}
         {owner && (
           <span className="tile-owner">

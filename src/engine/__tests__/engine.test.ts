@@ -410,7 +410,7 @@ describe('기타', () => {
     expect(reduce(s, { type: 'BUY_COLONY' })).toBe(s);
   });
 
-  it('진행자 조정은 사유가 있어야 하고 로그에 남는다', () => {
+  it('수동 조정은 사유가 있어야 하고 로그에 남는다', () => {
     let s = newGame();
     expect(reduce(s, { type: 'HOST_ADJUST_MONEY', player: 'UK', delta: 50, reason: '' })).toBe(s);
     s = act(s, { type: 'HOST_ADJUST_MONEY', player: 'UK', delta: 50, reason: '보너스' });

@@ -73,7 +73,7 @@ export function useMoveAnimation(game: GameState) {
     return () => timers.forEach(clearTimeout);
   }, [game.move.seq]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 연출 중이 아닐 때는 엔진 위치와 동기화 (진행자 조정·불러오기 등)
+  // 연출 중이 아닐 때는 엔진 위치와 동기화 (수동 조정·불러오기 등)
   useEffect(() => {
     if (!busyRef.current) setDisp(positions(game));
   }, [game, busy]);

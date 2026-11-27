@@ -57,7 +57,7 @@ function apply(s: GameState, a: Action): boolean {
     case 'LIBERIA_PENALTY_DONE': {
       if (pd || p.skipTurns <= 0) return false;
       p.skipTurns = 0;
-      addLog(s, { kind: 'event', player: p.id, text: `🍑 ${nationName(p.id)} 벌칙(엉덩이로 이름쓰기) 수행 완료 — 진행자 확인, 라이베리아 탈출` });
+      addLog(s, { kind: 'event', player: p.id, text: `🍑 ${nationName(p.id)} 벌칙(엉덩이로 이름쓰기) 수행 완료 — 라이베리아 탈출` });
       return true;
     }
 
@@ -317,7 +317,7 @@ function apply(s: GameState, a: Action): boolean {
       return true;
     }
 
-    // ── 시간·진행자 ──────────────────────────────
+    // ── 시간·관리 ──────────────────────────────
     case 'TIME_UP': {
       if (s.timeUp) return false;
       s.timeUp = true;
@@ -328,7 +328,7 @@ function apply(s: GameState, a: Action): boolean {
     case 'HOST_ADJUST_MONEY': {
       const t = s.players.find((x) => x.id === a.player);
       if (!t || !a.reason.trim() || a.delta === 0) return false;
-      const reason = `진행자 조정: ${a.reason}`;
+      const reason = `수동 조정: ${a.reason}`;
       if (a.delta > 0) transfer(s, 'BANK', t.id, a.delta, reason);
       else transfer(s, t.id, 'BANK', Math.min(-a.delta, t.money), reason);
       addLog(s, { kind: 'host', player: t.id, text: `🛠 ${reason} — ${nationName(t.id)} ${a.delta > 0 ? '+' : ''}${won(a.delta)}` });
@@ -345,7 +345,7 @@ function apply(s: GameState, a: Action): boolean {
         c.owner = a.owner;
         if (!c.everOwned.includes(a.owner)) c.everOwned.push(a.owner);
       }
-      addLog(s, { kind: 'host', text: `🛠 진행자 조정: ${COLONIES[a.colonyId].name} 소유 → ${a.owner ? nationName(a.owner) : '없음'} (${a.reason})` });
+      addLog(s, { kind: 'host', text: `🛠 수동 조정: ${COLONIES[a.colonyId].name} 소유 → ${a.owner ? nationName(a.owner) : '없음'} (${a.reason})` });
       return true;
     }
     case 'HOST_SET_STAGE': {
@@ -354,12 +354,12 @@ function apply(s: GameState, a: Action): boolean {
       if (!c?.owner || !a.reason.trim() || a.stage < 0 || a.stage > max) return false;
       c.stage = a.stage;
       c.invested = investmentFor(a.colonyId, a.stage);
-      addLog(s, { kind: 'host', text: `🛠 진행자 조정: ${COLONIES[a.colonyId].name} 단계 → ${COLONIES[a.colonyId].stages[a.stage].name} (${a.reason})` });
+      addLog(s, { kind: 'host', text: `🛠 수동 조정: ${COLONIES[a.colonyId].name} 단계 → ${COLONIES[a.colonyId].stages[a.stage].name} (${a.reason})` });
       return true;
     }
     case 'HOST_SETTINGS': {
       s.settings = { ...s.settings, ...a.settings };
-      addLog(s, { kind: 'host', text: '🛠 진행자: 게임 설정 변경' });
+      addLog(s, { kind: 'host', text: '🛠 게임 설정 변경' });
       return true;
     }
   }

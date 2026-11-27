@@ -16,7 +16,7 @@ export interface Session {
   room?: string; // 온라인 방 코드
   seats?: Partial<Record<PlayerId, string>>; // 온라인: 나라 → 학생 기기 id
   names?: Partial<Record<PlayerId, string>>; // 온라인: 모둠 이름
-  hostTakeover?: boolean; // 온라인: 진행자가 대신 조작
+  hostTakeover?: boolean; // 온라인: 전자칠판에서 대신 조작
 }
 
 interface Store {

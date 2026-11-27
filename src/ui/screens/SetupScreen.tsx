@@ -19,15 +19,14 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
   const [quiz, setQuiz] = useState(false);
   const [passDev, setPassDev] = useState(true);
   const [dice, setDice] = useState(RULES.diceCount);
-  const [pin, setPin] = useState('0000');
   const toggle = (id: PlayerNation) =>
     setNations((ns) => (ns.includes(id) ? ns.filter((x) => x !== id) : ALL.filter((x) => ns.includes(x) || x === id)));
 
   const settings: Partial<Settings> = { startingMoney: money, timeLimitMinutes: Math.max(0, minutes), quizEnabled: quiz, developOnPassStart: passDev, diceCount: dice };
   const start = () => {
-    if (mode === 'single') newGame(ALL, settings, pin, { mode: 'single', me, ai: ALL.filter((x) => x !== me) });
-    else if (mode === 'hotseat') newGame(nations, settings, pin, { mode: 'hotseat', ai: [] });
-    else useNet.getState().set({ role: 'host', room: makeRoomCode(), hostSetup: { settings, pin }, seats: {}, names: {}, aiFill: true });
+    if (mode === 'single') newGame(ALL, settings, '0000', { mode: 'single', me, ai: ALL.filter((x) => x !== me) });
+    else if (mode === 'hotseat') newGame(nations, settings, '0000', { mode: 'hotseat', ai: [] });
+    else useNet.getState().set({ role: 'host', room: makeRoomCode(), hostSetup: { settings, pin: '0000' }, seats: {}, names: {}, aiFill: true });
   };
 
   return (
@@ -68,7 +67,7 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
         )}
         {mode === 'online' && (
           <p className="lead">방을 만들면 6자리 코드가 나옵니다. 학생들은 각자 기기에서 [방 참여하기]로 코드를 입력하고 나라를 고릅니다.
-            이 기기(전자칠판)는 게임판을 보여 주고 진행자 역할을 합니다.</p>
+            이 기기(전자칠판)는 게임판을 보여 줍니다. 돈 계산·국제은행 업무는 모두 자동으로 처리됩니다.</p>
         )}
 
         <div className="setup-grid">
@@ -87,10 +86,6 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
             </select>
             <small>2개면 30분에 약 4~5바퀴</small>
           </label>
-          <label className="field">진행자 PIN (4자리)
-            <input inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
-            <small>진행자 모드 입장용</small>
-          </label>
           <label className="field check">
             <input type="checkbox" checked={quiz} onChange={(e) => setQuiz(e.target.checked)} />
             황금열쇠 전 OX 퀴즈 <small>맞히면 2장 중 선택</small>
@@ -101,7 +96,7 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
           </label>
         </div>
 
-        <button className="btn primary huge" disabled={(mode === 'hotseat' && nations.length < 2) || pin.length !== 4} onClick={start}>
+        <button className="btn primary huge" disabled={(mode === 'hotseat' && nations.length < 2)} onClick={start}>
           {mode === 'online' ? '방 만들기' : '게임 시작'}
         </button>
         {mode === 'hotseat' && nations.length < 2 && <p className="m-warn">2개국 이상 선택하세요.</p>}
