@@ -1,0 +1,10 @@
+node_modules
+dist
+.env.local
+# 원본 수업 자료는 올리지 않음 (저작권 확인 필요 자료 포함)
+*.pptx
+*.pdf
+제국주의마블_클로드코드_개발가이드.md
+# PowerPoint 임시 파일
+~$*
+*.tmp
