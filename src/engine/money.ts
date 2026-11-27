@@ -12,7 +12,7 @@ export function addLog(s: GameState, entry: Omit<LogEntry, 'id' | 'turn'>) {
  * 모든 금전 이동은 이 함수만 사용한다. 잔액 검사는 호출 측 책임
  * (필수 납부는 reducer의 processCharges가 DEBT 흐름으로 처리).
  */
-export function transfer(s: GameState, from: Account, to: Account, amount: number, reason: string) {
+export function transfer(s: GameState, from: Account, to: Account, amount: number, reason: string, secret = false) {
   if (amount <= 0) return;
   if (from !== 'BANK' && from !== 'CHINA_POOL') {
     const p = getPlayer(s, from);
@@ -25,6 +25,7 @@ export function transfer(s: GameState, from: Account, to: Account, amount: numbe
     kind: 'money', from, to, amount,
     player: from !== 'BANK' && from !== 'CHINA_POOL' ? from : (to as PlayerId),
     text: `${accountName(from)} → ${accountName(to)} ${won(amount)} (${reason})`,
+    ...(secret ? { secret: true } : {}),
   });
 }
 

@@ -20,10 +20,12 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
   const [passDev, setPassDev] = useState(true);
   const [dice, setDice] = useState(RULES.diceCount);
   const [pin, setPin] = useState('0000');
+  const [randomOrder, setRandomOrder] = useState(true);
+  const [doubleAgain, setDoubleAgain] = useState(true);
   const toggle = (id: PlayerNation) =>
     setNations((ns) => (ns.includes(id) ? ns.filter((x) => x !== id) : ALL.filter((x) => ns.includes(x) || x === id)));
 
-  const settings: Partial<Settings> = { startingMoney: money, timeLimitMinutes: Math.max(0, minutes), quizEnabled: quiz, developOnPassStart: passDev, diceCount: dice };
+  const settings: Partial<Settings> = { startingMoney: money, timeLimitMinutes: Math.max(0, minutes), quizEnabled: quiz, developOnPassStart: passDev, diceCount: dice, randomOrder, doubleRollAgain: doubleAgain };
   const start = () => {
     if (mode === 'single') newGame(ALL, settings, pin, { mode: 'single', me, ai: ALL.filter((x) => x !== me) });
     else if (mode === 'hotseat') newGame(nations, settings, pin, { mode: 'hotseat', ai: [] });
@@ -97,7 +99,15 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
           </label>
           <label className="field check">
             <input type="checkbox" checked={passDev} onChange={(e) => setPassDev(e.target.checked)} />
-            출발 통과 시 식민지 일괄 개발 <small>끄면 원래대로 도착해야 개발</small>
+            출발 통과 시 식민지 1곳 개발 <small>끄면 도착해야만 개발</small>
+          </label>
+          <label className="field check">
+            <input type="checkbox" checked={randomOrder} onChange={(e) => setRandomOrder(e.target.checked)} />
+            차례 순서 추첨 <small>끄면 영국→프랑스→독일→미국</small>
+          </label>
+          <label className="field check">
+            <input type="checkbox" checked={doubleAgain} onChange={(e) => setDoubleAgain(e.target.checked)} />
+            더블이면 한 번 더 <small>주사위 2개일 때</small>
           </label>
         </div>
 

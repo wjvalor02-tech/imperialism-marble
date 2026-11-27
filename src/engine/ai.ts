@@ -14,7 +14,7 @@ export function chooseAiAction(s: GameState, me: PlayerId, rand: () => number = 
   const nextCost = (id: string) => COLONIES[id].stages[s.colonies[id].stage + 1].cost;
 
   if (!pd) {
-    if (p.skipTurns > 0) return { type: 'LIBERIA_WAIT' }; // AI는 벌칙을 할 수 없으니 쉰다
+    if (p.skipTurns > 0) return (s.settings.diceCount ?? 1) >= 2 ? { type: 'ROLL_DICE' } : { type: 'LIBERIA_WAIT' }; // 더블이면 탈출
     for (const id of p.heldCards) {
       const k = keyById(id);
       if (k.effect === 'WAR' && p.money >= (k.cost ?? 0) + RESERVE * 2) {
@@ -54,7 +54,8 @@ export function chooseAiAction(s: GameState, me: PlayerId, rand: () => number = 
         left -= nextCost(id);
         return true;
       });
-      return { type: 'DEVELOP_MANY', colonyIds: ids };
+      const lim = s.settings.startDevelopLimit ?? 0;
+      return { type: 'DEVELOP_MANY', colonyIds: lim > 0 ? ids.slice(0, lim) : ids };
     }
     case 'PAY_TOLL': {
       const useExempt = pd.amount >= 25 && canApply(s, { type: 'PAY_TOLL', useExempt: true });

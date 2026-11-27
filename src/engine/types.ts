@@ -12,7 +12,11 @@ export interface Settings {
   quizEnabled: boolean;
   loanRepayment: number; // 출발 통과 때마다 상환액
   diceCount: number; // 주사위 개수 (1 또는 2)
-  developOnPassStart: boolean; // 출발을 지날 때 내 식민지를 각각 1단계씩 개발할 수 있음
+  developOnPassStart: boolean; // 출발을 지날 때 내 식민지를 1단계 개발할 수 있음
+  startDevelopLimit: number; // 출발 통과 개발에서 고를 수 있는 식민지 수 (0 = 제한 없음)
+  colonyIncome: number; // 출발을 지날 때 보유 식민지 1곳마다 받는 돈
+  randomOrder: boolean; // 게임 시작 때 차례 순서를 추첨
+  doubleRollAgain: boolean; // 주사위 2개가 더블이면 한 번 더
 }
 
 export interface PlayerState {
@@ -93,6 +97,7 @@ export interface LogEntry {
   from?: Account;
   to?: Account;
   amount?: number;
+  secret?: boolean; // 황금열쇠 내용이 드러나는 기록 → 공개 화면(최근 사건)에서는 숨김
 }
 
 export interface RankRow {
@@ -129,6 +134,8 @@ export interface GameState {
   logSeq: number;
   timeUp: boolean;
   bankruptOrder: PlayerId[];
+  bonusRoll?: boolean; // 이번 굴림이 더블 → 차례를 마치면 같은 나라가 한 번 더
+  extraTurn?: boolean; // 지금 차례가 더블로 얻은 추가 굴림인지 (화면 안내용)
   ranking?: RankRow[];
   winner?: PlayerId;
   endReason?: 'LAST_STANDING' | 'TIME_UP';
@@ -152,7 +159,6 @@ export type Action =
   | { type: 'PAY_DEBT' }
   | { type: 'DECLARE_BANKRUPTCY' }
   | { type: 'LIBERIA_WAIT' }
-  | { type: 'LIBERIA_PENALTY_DONE' }
   | { type: 'TIME_UP' }
   | { type: 'GO_REFLECTION' }
   | { type: 'HOST_ADJUST_MONEY'; player: PlayerId; delta: number; reason: string }

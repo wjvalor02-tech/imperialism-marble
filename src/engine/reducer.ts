@@ -38,11 +38,33 @@ function apply(s: GameState, a: Action): boolean {
   switch (a.type) {
     // ── 차례 시작 ──────────────────────────────
     case 'ROLL_DICE': {
-      if (pd || p.skipTurns > 0) return false;
-      const dice = Array.from({ length: s.settings.diceCount ?? 1 }, () => randInt(s, 1, 6));
+      if (pd) return false;
+      const n = s.settings.diceCount ?? 1;
+      if (p.skipTurns > 0 && n < 2) return false; // 주사위 1개면 더블이 없으니 쉬기만
+      const dice = Array.from({ length: n }, () => randInt(s, 1, 6));
       s.lastRoll = dice;
       const steps = dice.reduce((x, y) => x + y, 0);
-      addLog(s, { kind: 'event', player: p.id, text: `🎲 ${nationName(p.id)} 주사위 ${dice.join('+')} → ${steps}칸` });
+      const double = dice.length >= 2 && dice.every((v) => v === dice[0]);
+      if (p.skipTurns > 0) {
+        // 라이베리아: 더블이면 바로 탈출해 나온 눈만큼 이동(추가 굴림 없음), 아니면 한 턴 소모
+        s.bonusRoll = false;
+        if (!double) {
+          p.skipTurns -= 1;
+          s.move = { seq: s.move.seq + 1, player: p.id, from: p.position, path: [], kind: 'dice', passes: 0 };
+          addLog(s, { kind: 'event', player: p.id, text: `⛓ ${nationName(p.id)} 주사위 ${dice.join('+')} — 더블이 아니라 라이베리아에 머묾 (남은 ${p.skipTurns}턴)` });
+          notice(s, {
+            tone: 'info', icon: '⛓', title: '라이베리아 탈출 실패',
+            lines: [`주사위 ${dice.join(' · ')} — 더블이 아닙니다.`, p.skipTurns ? `남은 ${p.skipTurns}턴. 다음 차례에 다시 굴려 보세요.` : '다음 차례부터는 자유롭게 움직입니다.'],
+            then: 'END_TURN',
+          });
+          return true;
+        }
+        p.skipTurns = 0;
+        addLog(s, { kind: 'event', player: p.id, text: `🎉 ${nationName(p.id)} 더블(${dice.join('+')})! 라이베리아 탈출 → ${steps}칸` });
+      } else {
+        s.bonusRoll = double && s.settings.doubleRollAgain;
+        addLog(s, { kind: 'event', player: p.id, text: `🎲 ${nationName(p.id)} 주사위 ${dice.join('+')} → ${steps}칸${s.bonusRoll ? ' (더블! 한 번 더)' : ''}` });
+      }
       const charges = moveSteps(s, p, steps, 'dice');
       processCharges(s, p.id, charges, 'START_DEV');
       return true;
@@ -52,12 +74,6 @@ function apply(s: GameState, a: Action): boolean {
       p.skipTurns -= 1;
       addLog(s, { kind: 'event', player: p.id, text: `⛓ ${nationName(p.id)} 라이베리아에서 대기 (남은 ${p.skipTurns}턴)` });
       endTurn(s);
-      return true;
-    }
-    case 'LIBERIA_PENALTY_DONE': {
-      if (pd || p.skipTurns <= 0) return false;
-      p.skipTurns = 0;
-      addLog(s, { kind: 'event', player: p.id, text: `🍑 ${nationName(p.id)} 벌칙(엉덩이로 이름쓰기) 수행 완료 — 라이베리아 탈출` });
       return true;
     }
 
@@ -103,6 +119,8 @@ function apply(s: GameState, a: Action): boolean {
       if (pd?.type !== 'START_DEVELOP') return false;
       const ids = [...new Set(a.colonyIds)];
       if (ids.some((id) => !pd.colonyIds.includes(id))) return false;
+      const lim = s.settings.startDevelopLimit ?? 0;
+      if (lim > 0 && ids.length > lim) return false;
       const cost = ids.reduce((sum, id) => sum + COLONIES[id].stages[s.colonies[id].stage + 1].cost, 0);
       if (cost > p.money) return false;
       for (const id of ids) {
@@ -440,9 +458,12 @@ function moveSteps(s: GameState, p: PlayerState, steps: number, kind: 'dice' | '
 
   const charges: Charge[] = [];
   let loanLeft = p.loan;
+  const owned = Object.values(s.colonies).filter((c) => c.owner === p.id).length;
   for (let i = 0; i < passes; i++) {
     p.lap += 1;
     addLog(s, { kind: 'event', player: p.id, text: `🏁 ${nationName(p.id)} 출발 통과 (${p.lap}바퀴 완료)` });
+    // 식민지 수입: 식민지에서 거둔 이익이 본국으로 들어온다
+    transfer(s, 'BANK', p.id, owned * (s.settings.colonyIncome ?? 0), `식민지 수입 ${owned}곳`);
     charges.push({ to: 'BANK', amount: s.settings.passStartToll, reason: '출발 통행료' });
     if (loanLeft > 0) {
       const r = Math.min(s.settings.loanRepayment, loanLeft);
@@ -605,9 +626,10 @@ function applyDrawn(s: GameState, id: string) {
     s.pending = { type: 'KEY_DRAWN', cardId: id, kept: true };
     return;
   }
-  if (k.effect === 'EXPLOIT') transfer(s, 'BANK', p.id, k.gain ?? 0, '착취 강화');
+  // 금액·사유가 카드 내용을 드러내므로 공개 화면(최근 사건)에서는 숨긴다
+  if (k.effect === 'EXPLOIT') transfer(s, 'BANK', p.id, k.gain ?? 0, '착취 강화', true);
   if (k.effect === 'LOAN') {
-    transfer(s, 'BANK', p.id, k.gain ?? 0, '국제은행 대출');
+    transfer(s, 'BANK', p.id, k.gain ?? 0, '국제은행 대출', true);
     p.loan += k.gain ?? 0;
   }
   s.discard.push(id);
@@ -623,6 +645,17 @@ function endTurn(s: GameState) {
   const alive = s.players.filter((x) => !x.bankrupt);
   if (alive.length <= 1) return finish(s, 'LAST_STANDING');
   if (s.timeUp) return finish(s, 'TIME_UP');
+  const cur = s.players[s.currentIdx];
+  const again = !!s.bonusRoll && !cur.bankrupt && cur.skipTurns === 0;
+  s.bonusRoll = false;
+  if (again) {
+    // 더블: 같은 나라가 한 번 더 굴린다
+    s.extraTurn = true;
+    s.turn += 1;
+    addLog(s, { kind: 'turn', player: cur.id, text: `— ${s.turn}번째 차례: ${nationName(cur.id)} (더블! 한 번 더) —` });
+    return;
+  }
+  s.extraTurn = false;
   let i = s.currentIdx;
   do i = (i + 1) % s.players.length;
   while (s.players[i].bankrupt);

@@ -8,8 +8,10 @@ import { createGame } from '../setup';
 import type { Action, GameState, PlayerId } from '../types';
 
 const ALL: PlayerId[] = ['UK', 'FRANCE', 'GERMANY', 'USA'];
-// 테스트는 원래 규칙 수치(주사위 1개, 500만원)로 시나리오를 검증한다
-const BASE = { diceCount: 1, startingMoney: 500 };
+// 테스트는 원래 규칙 수치(주사위 1개, 500만원, 식민지 수입·개발 수 제한·더블 없음)로 시나리오를 검증한다
+const BASE = { diceCount: 1, startingMoney: 500, colonyIncome: 0, startDevelopLimit: 0, doubleRollAgain: false };
+// 새 규칙(주사위 2개, 더블, 식민지 수입, 1곳 개발) 시나리오용
+const NEW = { startingMoney: 500 };
 const newGame = () => createGame(ALL, BASE, 42);
 const keyId = (effect: string, nth = 0) => GOLDEN_KEYS.filter((k) => k.effect === effect)[nth].id;
 
@@ -19,6 +21,19 @@ function forceDie(s: GameState, face: number) {
     const [v] = nextRandom(seed);
     if (1 + Math.floor(v * 6) === face) { s.rngSeed = seed; return; }
   }
+}
+/** 다음 주사위 2개가 (a, b)가 되도록 시드를 맞춘다 */
+function forceDice(s: GameState, a: number, b: number) {
+  for (let seed = 1; ; seed++) {
+    const [v1, n1] = nextRandom(seed);
+    const [v2] = nextRandom(n1);
+    if (1 + Math.floor(v1 * 6) === a && 1 + Math.floor(v2 * 6) === b) { s.rngSeed = seed; return; }
+  }
+}
+function roll2(s: GameState, a: number, b: number) {
+  const c = structuredClone(s);
+  forceDice(c, a, b);
+  return act(c, { type: 'ROLL_DICE' });
 }
 function act(s: GameState, a: Action): GameState {
   const n = reduce(s, a);
@@ -164,14 +179,21 @@ describe('특수칸', () => {
     expect(getPlayer(s, 'UK').position).toBe(19);
   });
 
-  it('라이베리아: 벌칙 수행 확인 시 즉시 탈출', () => {
-    let s = newGame();
+  it('라이베리아(주사위 2개): 더블이 아니면 한 턴 소모, 더블이면 바로 탈출해 이동', () => {
+    let s = createGame(ALL, NEW, 3);
     getPlayer(s, 'UK').skipTurns = 3;
     getPlayer(s, 'UK').position = 18;
-    s = act(s, { type: 'LIBERIA_PENALTY_DONE' });
+    s = roll2(s, 1, 2);
+    expect(getPlayer(s, 'UK').skipTurns).toBe(2);
+    expect(getPlayer(s, 'UK').position).toBe(18);
+    expect(s.pending).toMatchObject({ type: 'NOTICE', title: '라이베리아 탈출 실패' });
+    s = act(s, { type: 'ACK' });
+    expect(s.players[s.currentIdx].id).toBe('FRANCE');
+    s.currentIdx = 0;
+    s = roll2(s, 2, 2); // 더블 → 탈출, 4칸
     expect(getPlayer(s, 'UK').skipTurns).toBe(0);
-    s = roll(s, 1);
-    expect(getPlayer(s, 'UK').position).toBe(19);
+    expect(getPlayer(s, 'UK').position).toBe(22);
+    expect(s.bonusRoll).toBe(false); // 탈출 더블은 추가 굴림 없음
   });
 
   it('시암: 앞쪽으로 가장 가까운 내 식민지로 이동해 그 칸을 처리', () => {
@@ -499,6 +521,64 @@ describe('출발 통과 시 일괄 개발 (밸런스 조정 규칙)', () => {
     s0.settings.developOnPassStart = false;
     const s = roll(s0, 3);
     expect(s.pending).toEqual({ type: 'BUY', colonyId: 'morocco' });
+  });
+});
+
+describe('새 규칙: 더블·1곳 개발·식민지 수입·순서 추첨·황금열쇠 비밀', () => {
+  it('더블이면 같은 나라가 한 번 더, 아니면 다음 나라', () => {
+    let s = createGame(ALL, NEW, 3);
+    s = roll2(s, 2, 2); // 4칸: 알제리(빈 땅)
+    expect(s.pending?.type).toBe('BUY');
+    s = act(s, { type: 'SKIP' });
+    expect(s.players[s.currentIdx].id).toBe('UK');
+    expect(s.extraTurn).toBe(true);
+    s = roll2(s, 1, 2);
+    s = act(s, s.pending?.type === 'BUY' ? { type: 'SKIP' } : { type: 'ACK' });
+    expect(s.players[s.currentIdx].id).toBe('FRANCE');
+    expect(s.extraTurn).toBe(false);
+  });
+
+  it('출발을 지나면 식민지 1곳마다 10만원 수입 (통행료 10만원은 냄)', () => {
+    let s = createGame(ALL, NEW, 3);
+    own(s, 'egypt', 'UK', 1);
+    own(s, 'india', 'UK', 1);
+    getPlayer(s, 'UK').position = 22;
+    s = roll2(s, 1, 2); // 22 → 1, 출발 통과
+    expect(money(s, 'UK')).toBe(500 + 20 - 10);
+  });
+
+  it('출발 통과 개발은 1곳만 고를 수 있다', () => {
+    let s = createGame(ALL, NEW, 3);
+    own(s, 'egypt', 'UK', 1);
+    own(s, 'india', 'UK', 1);
+    getPlayer(s, 'UK').position = 22;
+    s = roll2(s, 1, 2);
+    expect(s.pending).toMatchObject({ type: 'START_DEVELOP' });
+    expect(reduce(s, { type: 'DEVELOP_MANY', colonyIds: ['egypt', 'india'] })).toBe(s);
+    s = act(s, { type: 'DEVELOP_MANY', colonyIds: ['india'] });
+    expect(s.colonies.india.stage).toBe(2);
+    expect(s.colonies.egypt.stage).toBe(1);
+  });
+
+  it('순서 추첨: 시작할 때 순서를 섞고 결과를 알려 준다', () => {
+    const s = createGame(ALL, { ...NEW, randomOrder: true }, 11);
+    expect(s.pending).toMatchObject({ type: 'NOTICE', title: '차례 순서 추첨 결과' });
+    expect([...s.players.map((p) => p.id)].sort()).toEqual([...ALL].sort());
+    const orders = new Set([1, 2, 3, 4, 5, 6, 7, 8].map((seed) => createGame(ALL, { randomOrder: true }, seed).players.map((p) => p.id).join()));
+    expect(orders.size).toBeGreaterThan(1);
+    const t = act(s, { type: 'ACK' });
+    expect(t.pending).toBeNull();
+  });
+
+  it('착취·대출 카드의 돈 기록은 공개 화면에서 숨김(secret)', () => {
+    let s = newGame();
+    s.deck = [keyId('EXPLOIT')];
+    s.discard = [];
+    getPlayer(s, 'USA').position = 8;
+    s.currentIdx = 3;
+    s = roll(s, 1);
+    const m = s.log.filter((l) => l.kind === 'money' && l.to === 'USA');
+    expect(m.at(-1)?.secret).toBe(true);
   });
 });
 

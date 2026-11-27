@@ -16,7 +16,7 @@ function botAction(s: GameState, r: () => number): Action {
   const pd = s.pending;
   const p = currentPlayer(s);
   if (!pd) {
-    if (p.skipTurns > 0) return r() < 0.3 ? { type: 'LIBERIA_PENALTY_DONE' } : { type: 'LIBERIA_WAIT' };
+    if (p.skipTurns > 0) return (s.settings.diceCount ?? 1) >= 2 ? { type: 'ROLL_DICE' } : { type: 'LIBERIA_WAIT' };
     for (const id of p.heldCards) {
       const k = keyById(id);
       if (k.effect === 'WAR' && r() < 0.5) {
@@ -42,7 +42,8 @@ function botAction(s: GameState, r: () => number): Action {
         left -= cost;
         return true;
       });
-      return { type: 'DEVELOP_MANY', colonyIds: ids };
+      const lim = s.settings.startDevelopLimit ?? 0;
+      return { type: 'DEVELOP_MANY', colonyIds: lim > 0 ? ids.slice(0, lim) : ids };
     }
     case 'DEVELOP': return canApply(s, { type: 'DEVELOP_COLONY' }) && p.money > 80 ? { type: 'DEVELOP_COLONY' } : { type: 'SKIP' };
     case 'PAY_TOLL': return { type: 'PAY_TOLL', useExempt: canApply(s, { type: 'PAY_TOLL', useExempt: true }) };

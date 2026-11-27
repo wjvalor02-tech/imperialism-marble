@@ -224,7 +224,7 @@ function SettingsView({ game, onClose }: { game: GameState; onClose: () => void 
         </label>
         <label className="field check">
           <input type="checkbox" checked={st.developOnPassStart ?? false} onChange={(e) => dispatch({ type: 'HOST_SETTINGS', settings: { developOnPassStart: e.target.checked } })} />
-          출발 통과 시 내 식민지 일괄 개발 (끄면 도착해야 개발)
+          출발 통과 시 식민지 1곳 개발 (끄면 도착해야 개발)
         </label>
       </fieldset>
       <fieldset>

@@ -21,7 +21,9 @@ export default function CenterPanel({ game, rolling, busy }: { game: GameState; 
   const idle = !game.pending && !busy && mine;
   // 주사위가 구르고 말이 움직이는 동안(busy)에는 계속 보여 주고, 결정 창이 뜨면 숨김
   const showTurn = !game.pending || busy;
-  const last = [...game.log].reverse().find((l) => l.kind !== 'turn');
+  // 황금열쇠 내용이 드러나는 기록(secret)은 모두가 보는 '최근'에 띄우지 않는다
+  const last = [...game.log].reverse().find((l) => l.kind !== 'turn' && !l.secret);
+  const twoDice = (game.settings.diceCount ?? 1) >= 2;
 
   return (
     <div className="center">
@@ -42,28 +44,26 @@ export default function CenterPanel({ game, rolling, busy }: { game: GameState; 
             <div className="turn-who">
               <span className="turn-pawn"><Piece id={p.id} /></span>
               <div>
-                <small>{game.turn}번째 차례</small>
+                {game.extraTurn && <small className="double-badge">더블! 한 번 더</small>}
                 <strong>{n.name}</strong>
               </div>
             </div>
             <div className="dice-row">
               {game.lastRoll.length ? game.lastRoll.map((v, i) => <Dice key={i} index={i} value={v} rolling={rolling} />) : Array.from({ length: game.settings.diceCount ?? 1 }, (_, i) => <Dice key={i} index={i} value={i + 1} rolling={rolling} />)}
             </div>
-            {idle && p.skipTurns > 0 ? (
+            {idle && p.skipTurns > 0 && !twoDice ? (
               <div className="liberia-box">
                 <p>라이베리아에 묶여 있습니다 (남은 {p.skipTurns}턴)</p>
                 <div className="btn-row">
-                  <button className="btn" onClick={() => dispatch({ type: 'LIBERIA_WAIT' })}>이번 턴 쉬기</button>
-                  <button className="btn primary" onClick={() => dispatch({ type: 'LIBERIA_PENALTY_DONE' })}>
-                    엉덩이로 이름쓰기 완료<small>바로 탈출</small>
-                  </button>
+                  <button className="btn primary" onClick={() => dispatch({ type: 'LIBERIA_WAIT' })}>이번 턴 쉬기</button>
                 </div>
               </div>
             ) : (
               <button className="btn primary roll" disabled={!idle} onClick={() => dispatch({ type: 'ROLL_DICE' })}>
-                {busy ? (rolling ? '굴리는 중…' : '이동 중…') : mine ? '주사위 굴리기' : ctl?.waiting}
+                {busy ? (rolling ? '굴리는 중…' : '이동 중…') : !mine ? ctl?.waiting : p.skipTurns > 0 ? '더블이면 탈출! 주사위 굴리기' : '주사위 굴리기'}
               </button>
             )}
+            {idle && p.skipTurns > 0 && twoDice && <p className="hint">⛓ 라이베리아에 묶여 있습니다 (남은 {p.skipTurns}턴). 더블이 나오면 바로 탈출합니다.</p>}
             {idle && p.heldCards.length > 0 && p.skipTurns === 0 && <p className="hint">보관한 황금열쇠는 나라 현황 카드에서 주사위 전에 쓸 수 있어요.</p>}
           </div>
         )}

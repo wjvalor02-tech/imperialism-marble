@@ -762,3 +762,6 @@ body { word-break: keep-all; overflow-wrap: anywhere; }
 
 /* 순위 막대: 파쇼다 점수 */
 .seg.fa { background: #6b3fa0; }
+
+/* 더블로 얻은 추가 굴림 안내 */
+.turn-who .double-badge { display: inline-block; background: #c8372d; color: #fff; font-weight: 800; border-radius: 999px; padding: .1cqw .8cqw; }
