@@ -466,16 +466,35 @@ button.mode-card:hover { transform: translateY(-3px); box-shadow: 0 22px 50px rg
   70% { translate: 0 0; } 82% { translate: 0 -.4cqw; } 100% { translate: 0 0; } }
 @keyframes diceShadow { 0%,40%,70%,100% { transform: scale(1); opacity: 1; } 18% { transform: scale(.55); opacity: .5; } 55% { transform: scale(.8); } }
 
-/* ── 말 (군복 입은 사람, 국기 머리) ───────────────────────── */
-.tokens { align-items: flex-end; gap: 0; bottom: .1cqw; }
-.pawn { width: 2.9cqw; height: 4.8cqw; margin: 0 -.25cqw; transition: transform .15s; filter: drop-shadow(0 .15cqw .2cqw rgba(0,0,0,.35)); }
-.piece-svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.pawn .piece-svg { animation: pawnHop .22s ease-out; }
-.pawn.active { transform: translateY(-.2cqw) scale(1.1); z-index: 3; filter: drop-shadow(0 0 .35cqw rgba(201,162,39,1)) drop-shadow(0 .3cqw .3cqw rgba(0,0,0,.4)); }
-@keyframes pawnHop { 0% { transform: translateY(-1.4cqw); } 65% { transform: translateY(.15cqw); } 100% { transform: translateY(0); } }
-.turn-pawn { display: inline-block; width: 3.4cqw; height: 5.6cqw; }
-.img-tile .tokens { top: auto; bottom: 3.2cqw; }
 /* 말이 있는 칸은 글자를 위로 올려 말이 정보(소유국·단계)를 가리지 않게 */
-.tile:has(.tokens) .tile-text { padding-bottom: 5cqw; justify-content: flex-start; padding-top: .6cqw; }
-.tile:has(.band):has(.tokens) .tile-text { padding-top: 2.4cqw; }
-.img-tile:has(.tokens) .tile-text { padding: .35cqw .3cqw .45cqw; }
+.tile.occupied .tile-text { padding-bottom: 5cqw; justify-content: flex-start; padding-top: .6cqw; }
+.tile.occupied:has(.band) .tile-text { padding-top: 2.4cqw; }
+.img-tile.occupied .tile-text { padding: .35cqw .3cqw .45cqw; }
+
+/* ── 말: 일러스트 인물, 게임판 위 레이어에서 칸 사이를 걸어 다님 ───────────────────────── */
+.board { position: relative; }
+.piece-layer { position: absolute; inset: 6px; pointer-events: none; z-index: 5; }
+.piece { position: absolute; height: 8.4cqw; transform: translate(-50%, -100%);
+  transition-property: left, top; transition-timing-function: linear; }
+.piece-img { display: block; height: 100%; width: auto; transform: scaleX(var(--face, 1));
+  filter: drop-shadow(0 .25cqw .25cqw rgba(0,0,0,.35)); user-select: none; }
+.piece::after { content: ""; position: absolute; left: 15%; right: 15%; bottom: -.35cqw; height: .8cqw; border-radius: 50%;
+  background: radial-gradient(rgba(0,0,0,.35), transparent 70%); z-index: -1; }
+.piece.active .piece-img { filter: drop-shadow(0 0 .4cqw rgba(255,214,90,.95)) drop-shadow(0 .25cqw .3cqw rgba(0,0,0,.4)); }
+.piece.active { height: 9.2cqw; }
+/* 걷기: 한 칸마다 좌우로 몸을 흔들며 살짝 뛰어오름 */
+.piece.walking .piece-img { animation: walk var(--step) ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes walk {
+  0%   { transform: scaleX(var(--face, 1)) rotate(-7deg) translateY(0); }
+  25%  { transform: scaleX(var(--face, 1)) rotate(0deg) translateY(-.9cqw); }
+  50%  { transform: scaleX(var(--face, 1)) rotate(7deg) translateY(0); }
+  75%  { transform: scaleX(var(--face, 1)) rotate(0deg) translateY(-.9cqw); }
+  100% { transform: scaleX(var(--face, 1)) rotate(-7deg) translateY(0); }
+}
+.turn-pawn { display: inline-flex; width: auto; height: 6.4cqw; }
+.turn-pawn .piece-img { filter: drop-shadow(0 .2cqw .2cqw rgba(0,0,0,.3)); }
+/* 소유국·식민화 단계 표시는 칸 위쪽 색 띠 안에 (큰 말에 가리지 않게) */
+.tile:has(.band) .tile-owner { position: absolute; top: 0; left: 0; right: 0; height: 2cqw; margin: 0; justify-content: center; align-items: center; z-index: 1; }
+.tile:has(.band) .tile-owner .pips i { width: 1cqw; height: 1cqw; border-color: rgba(0,0,0,.6); }
+.tile.occupied .tile-text { padding-bottom: 6cqw; }
+.tile.occupied:has(.band) .tile-text { padding-top: 2.3cqw; }

@@ -15,7 +15,7 @@ import { useControl } from '../useControl';
 import { useMoveAnimation } from '../useMoveAnimation';
 
 export default function GameScreen({ game }: { game: GameState }) {
-  const { disp, rolling, busy } = useMoveAnimation(game);
+  const { disp, rolling, busy, walker } = useMoveAnimation(game);
   const [tile, setTile] = useState<number | null>(null);
   const [card, setCard] = useState<string | null>(null);
   const [host, setHost] = useState(false);
@@ -52,7 +52,7 @@ export default function GameScreen({ game }: { game: GameState }) {
       <TopBar game={game} onHost={() => setHost(true)} />
       {toast && <div className="toast" role="alert">{toast}</div>}
       <main className="game-main">
-        <Board game={game} disp={disp} rolling={rolling} busy={busy} onTile={(i) => { if (!game.pending && !busy) setTile(i); }} />
+        <Board game={game} disp={disp} rolling={rolling} busy={busy} walker={walker} onTile={(i) => { if (!game.pending && !busy) setTile(i); }} />
         <PlayerPanel game={game} canAct={canAct} onUseCard={setCard} />
       </main>
       {!busy && !host && <DecisionModal game={game} />}

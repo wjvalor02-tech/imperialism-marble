@@ -3,17 +3,15 @@ import { won } from '../../engine/selectors';
 import type { GameState, PlayerId } from '../../engine/types';
 import { gridPos, REGION, tileImage, tileTitle } from '../tileInfo';
 import Flag from './Flag';
-import Soldier from './Soldier';
 
 interface Props {
   index: number;
   game: GameState;
-  tokens: PlayerId[];
-  activeId: PlayerId;
+  occupied: boolean;
   onClick: () => void;
 }
 
-export default function Tile({ index, game, tokens, activeId, onClick }: Props) {
+export default function Tile({ index, game, occupied, onClick }: Props) {
   const t = BOARD[index];
   const { row, col, side } = gridPos(index);
   const img = tileImage(index);
@@ -45,7 +43,7 @@ export default function Tile({ index, game, tokens, activeId, onClick }: Props) 
 
   return (
     <button
-      className={`tile side-${side} ${owner ? 'owned' : ''} ${img ? 'img-tile' : ''} ${t.kind === 'start' ? 'start' : ''}`}
+      className={`tile side-${side} ${owner ? 'owned' : ''} ${img ? 'img-tile' : ''} ${t.kind === 'start' ? 'start' : ''} ${occupied ? 'occupied' : ''}`}
       style={style}
       onClick={onClick}
       aria-label={`${tileTitle(index)}${owner ? `, ${NATIONS[owner].name} 소유` : ''}`}
@@ -68,15 +66,6 @@ export default function Tile({ index, game, tokens, activeId, onClick }: Props) 
           </span>
         )}
       </span>
-      {tokens.length > 0 && (
-        <span className="tokens">
-          {tokens.map((id) => (
-            <span key={id} className={`pawn ${id === activeId ? 'active' : ''}`} title={NATIONS[id].name}>
-              <Soldier id={id} />
-            </span>
-          ))}
-        </span>
-      )}
     </button>
   );
 }

@@ -6,7 +6,7 @@ import { useGame } from '../../store/gameStore';
 import { useControlCtx } from '../controlContext';
 import { REGION } from '../tileInfo';
 import Dice from './Dice';
-import Soldier from './Soldier';
+import Piece from './Piece';
 
 /**
  * 게임판 가운데: 제목·색 안내 / 로즈 거상(원본 PPT처럼 크게) / 최근 사건 한 줄.
@@ -40,7 +40,7 @@ export default function CenterPanel({ game, rolling, busy }: { game: GameState; 
         {showTurn && (
           <div key={game.turn} className="turn-pop" style={{ '--owner': n.color } as React.CSSProperties} role="region" aria-label={`${n.name}의 차례`}>
             <div className="turn-who">
-              <span className="turn-pawn"><Soldier id={p.id} /></span>
+              <span className="turn-pawn"><Piece id={p.id} /></span>
               <div>
                 <small>{game.turn}번째 차례</small>
                 <strong>{n.name}</strong>
