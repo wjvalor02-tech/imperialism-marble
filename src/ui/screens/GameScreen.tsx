@@ -38,7 +38,7 @@ export default function GameScreen({ game }: { game: GameState }) {
   const limit = game.settings.timeLimitMinutes * 60;
   useEffect(() => {
     if (limit > 0 && limit - elapsed === 300) {
-      setToast('⏰ 수업 종료 5분 전입니다! 타이머가 끝나면 총자산 1위가 승리합니다.');
+      setToast('⏰ 수업 종료 5분 전입니다! 타이머가 끝나면 식민지 점수 1위가 승리합니다.');
       const t = window.setTimeout(() => setToast(null), 8000);
       return () => clearTimeout(t);
     }

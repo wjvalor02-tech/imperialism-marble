@@ -11,7 +11,24 @@ type Tab = 'memo' | 'log' | 'adjust' | 'settings';
 const KIND_LABEL: Record<LogKind, string> = { money: '돈', event: '사건', key: '황금열쇠', host: '조정', turn: '차례' };
 
 export default function HostPanel({ game, onClose }: { game: GameState; onClose: () => void }) {
+  const hostPin = useGame((st) => st.hostPin);
+  const [unlocked, setUnlocked] = useState(false);
+  const [pin, setPin] = useState('');
   const [tab, setTab] = useState<Tab>('memo');
+
+  if (!unlocked) {
+    return (
+      <Modal label="교사 PIN" onClose={onClose}>
+        <h2 className="m-title">⚙ 게임 관리 (교사용)</h2>
+        <form className="pin-form" onSubmit={(e) => { e.preventDefault(); if (pin === hostPin) setUnlocked(true); else setPin(''); }}>
+          <label htmlFor="pin">교사 PIN 4자리</label>
+          <input id="pin" type="password" inputMode="numeric" maxLength={4} value={pin} autoFocus onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
+          <button className="btn primary big" type="submit">들어가기</button>
+          <p className="muted">PIN은 게임 설정 화면에서 정합니다 (기본 0000).</p>
+        </form>
+      </Modal>
+    );
+  }
 
   return (
     <Modal label="게임 관리" onClose={onClose} wide>
@@ -185,7 +202,7 @@ function SettingsView({ game, onClose }: { game: GameState; onClose: () => void 
         </label>
         <button className="btn small" onClick={() => setTimerRunning(!timerRunning)}>{timerRunning ? '⏸ 일시정지' : '▶ 다시 시작'}</button>
         <span className="muted">경과 {Math.floor(elapsedSec / 60)}분</span>
-        <button className="btn small danger" disabled={game.timeUp} onClick={() => dispatch({ type: 'TIME_UP' })}>지금 종료(총자산 순위)</button>
+        <button className="btn small danger" disabled={game.timeUp} onClick={() => dispatch({ type: 'TIME_UP' })}>지금 종료(점수 순위)</button>
       </fieldset>
       <fieldset>
         <legend>규칙 설정</legend>

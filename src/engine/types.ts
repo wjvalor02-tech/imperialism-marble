@@ -100,8 +100,11 @@ export interface RankRow {
   cash: number;
   investment: number;
   loan: number;
-  total: number;
-  colonies: number;
+  total: number; // 총자산 = 현금 + 투자액 − 대출
+  colonies: number; // 식민지 수 (파쇼다 제외)
+  stages: number; // 식민화 단계 합
+  fashoda: boolean;
+  score: number; // 식민지 점수 (승리 기준)
   bankrupt: boolean;
 }
 

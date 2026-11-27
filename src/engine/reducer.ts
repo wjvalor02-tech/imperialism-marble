@@ -637,5 +637,5 @@ function finish(s: GameState, reason: 'LAST_STANDING' | 'TIME_UP') {
   s.ranking = computeRanking(s);
   s.winner = s.ranking[0].id;
   s.endReason = reason;
-  addLog(s, { kind: 'event', player: s.winner, text: `🏆 게임 종료 — ${nationName(s.winner)} 승리 (${reason === 'TIME_UP' ? '총자산 1위' : '마지막 생존국'})` });
+  addLog(s, { kind: 'event', player: s.winner, text: `🏆 게임 종료 — ${nationName(s.winner)} 승리 (${reason === 'TIME_UP' ? '식민지 점수 1위' : '마지막 생존국'})` });
 }

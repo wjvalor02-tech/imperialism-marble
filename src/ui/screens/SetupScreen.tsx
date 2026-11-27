@@ -19,14 +19,15 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
   const [quiz, setQuiz] = useState(false);
   const [passDev, setPassDev] = useState(true);
   const [dice, setDice] = useState(RULES.diceCount);
+  const [pin, setPin] = useState('0000');
   const toggle = (id: PlayerNation) =>
     setNations((ns) => (ns.includes(id) ? ns.filter((x) => x !== id) : ALL.filter((x) => ns.includes(x) || x === id)));
 
   const settings: Partial<Settings> = { startingMoney: money, timeLimitMinutes: Math.max(0, minutes), quizEnabled: quiz, developOnPassStart: passDev, diceCount: dice };
   const start = () => {
-    if (mode === 'single') newGame(ALL, settings, '0000', { mode: 'single', me, ai: ALL.filter((x) => x !== me) });
-    else if (mode === 'hotseat') newGame(nations, settings, '0000', { mode: 'hotseat', ai: [] });
-    else useNet.getState().set({ role: 'host', room: makeRoomCode(), hostSetup: { settings, pin: '0000' }, seats: {}, names: {}, aiFill: true });
+    if (mode === 'single') newGame(ALL, settings, pin, { mode: 'single', me, ai: ALL.filter((x) => x !== me) });
+    else if (mode === 'hotseat') newGame(nations, settings, pin, { mode: 'hotseat', ai: [] });
+    else useNet.getState().set({ role: 'host', room: makeRoomCode(), hostSetup: { settings, pin }, seats: {}, names: {}, aiFill: true });
   };
 
   return (
@@ -77,7 +78,7 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
           </label>
           <label className="field">수업 타이머 (분, 0=끔)
             <input type="number" min={0} max={120} value={minutes} onChange={(e) => setMinutes(Number(e.target.value))} />
-            <small>끝나면 총자산 1위 승리</small>
+            <small>끝나면 식민지 점수 1위 승리</small>
           </label>
           <label className="field">주사위
             <select value={dice} onChange={(e) => setDice(Number(e.target.value))}>
@@ -85,6 +86,10 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
               <option value={1}>1개 (원본 규칙 · 느림)</option>
             </select>
             <small>2개면 30분에 약 4~5바퀴</small>
+          </label>
+          <label className="field">교사 PIN (4자리)
+            <input inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
+            <small>[⚙ 관리] 화면 잠금용 · 기본 0000</small>
           </label>
           <label className="field check">
             <input type="checkbox" checked={quiz} onChange={(e) => setQuiz(e.target.checked)} />
@@ -96,7 +101,7 @@ export default function SetupScreen({ mode, onBack }: { mode: GameMode; onBack: 
           </label>
         </div>
 
-        <button className="btn primary huge" disabled={(mode === 'hotseat' && nations.length < 2)} onClick={start}>
+        <button className="btn primary huge" disabled={(mode === 'hotseat' && nations.length < 2) || pin.length !== 4} onClick={start}>
           {mode === 'online' ? '방 만들기' : '게임 시작'}
         </button>
         {mode === 'hotseat' && nations.length < 2 && <p className="m-warn">2개국 이상 선택하세요.</p>}

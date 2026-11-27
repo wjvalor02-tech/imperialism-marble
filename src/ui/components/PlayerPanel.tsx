@@ -35,7 +35,7 @@ export default function PlayerPanel({ game, canAct, onUseCard }: Props) {
                 <div className="pmoney">{won(p.money)}</div>
                 <dl className="pstats">
                   <div><dt>식민지</dt><dd>{ownedColonies(game, p.id).length}곳{game.fashoda.owner === p.id ? ' + 파쇼다' : ''}</dd></div>
-                  <div><dt>총자산</dt><dd>{won(row.total)}</dd></div>
+                  <div><dt>점수</dt><dd>{row.score}점</dd></div>
                   <div><dt>바퀴</dt><dd>{p.lap}</dd></div>
                   {p.loan > 0 && <div><dt>남은 대출</dt><dd className="neg">{won(p.loan)}</dd></div>}
                 </dl>

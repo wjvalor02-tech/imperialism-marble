@@ -759,3 +759,6 @@ body { word-break: keep-all; overflow-wrap: anywhere; }
   .img-tile .tile-name .short.xlong { font-size: 2.3cqw; }
   .start-arrow { width: 5.5cqw; height: 6.5cqw; }
 }
+
+/* 순위 막대: 파쇼다 점수 */
+.seg.fa { background: #6b3fa0; }

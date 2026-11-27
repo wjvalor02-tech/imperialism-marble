@@ -377,7 +377,7 @@ describe('파산과 승리', () => {
     expect(s.phase).toBe('REFLECTION');
   });
 
-  it('TIME_UP: 진행 중인 차례를 마치고 총자산 순위로 종료', () => {
+  it('TIME_UP: 진행 중인 차례를 마치고 식민지 점수 순위로 종료', () => {
     let s = newGame();
     own(s, 'india', 'GERMANY', 2); // 105
     getPlayer(s, 'GERMANY').money = 450; // 총자산 555
@@ -393,12 +393,30 @@ describe('파산과 승리', () => {
     expect(r[r.length - 1].id).toBe('USA');
   });
 
-  it('총자산 동점이면 식민지 수가 많은 나라', () => {
+  it('식민지 점수 = 식민지 1점 + 단계마다 1점 + 파쇼다 3점', () => {
     const s = newGame();
-    own(s, 'algeria', 'USA', 0); // 10
-    getPlayer(s, 'USA').money = 490; // 총 500, 식민지 1
+    own(s, 'india', 'GERMANY', 2); // 1 + 2 = 3점
+    own(s, 'algeria', 'FRANCE', 0);
+    own(s, 'morocco', 'FRANCE', 1); // 1 + 2 = 3점
+    s.fashoda.owner = 'UK'; // 3점
+    own(s, 'congo', 'USA', 0); // 1점
+    getPlayer(s, 'USA').money = 5000; // 돈이 많아도 점수가 낮으면 4위
+    getPlayer(s, 'FRANCE').money = 300;
+    getPlayer(s, 'UK').money = 280;
+    getPlayer(s, 'GERMANY').money = 290;
+    const r = computeRanking(s);
+    expect(r.map((x) => [x.id, x.score])).toEqual([['FRANCE', 3], ['GERMANY', 3], ['UK', 3], ['USA', 1]]);
+  });
+
+  it('점수가 같으면 현금 − 대출이 많은 나라', () => {
+    const s = newGame();
+    own(s, 'algeria', 'USA', 0);
+    own(s, 'morocco', 'UK', 0);
+    getPlayer(s, 'UK').loan = 20; // 500 − 20
+    getPlayer(s, 'USA').money = 490; // 490
     const r = computeRanking(s);
     expect(r[0].id).toBe('USA');
+    expect(r[1].id).toBe('UK');
   });
 });
 

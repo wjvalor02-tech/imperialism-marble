@@ -1,4 +1,4 @@
-import { BOARD, COLONIES, GOLDEN_KEYS, NATIONS, SPECIAL_TILES } from '../data/gameData';
+import { BOARD, COLONIES, GOLDEN_KEYS, NATIONS, SPECIAL_TILES, RULES } from '../data/gameData';
 import type { Account, GameState, PlayerId, PlayerState, RankRow } from './types';
 
 export const won = (n: number) => `${n.toLocaleString('ko-KR')}만원`;
@@ -77,23 +77,27 @@ export function allianceOf(s: GameState, id: PlayerId) {
   return s.alliances.find((a) => a.a === id || a.b === id);
 }
 
-/** 총자산 = 현금 + 보유 식민지 투자액 − 남은 대출 원금 */
+/** 총자산(현금 + 식민지 투자액 − 대출)과 식민지 점수(승리 기준) */
 export function assetRow(s: GameState, p: PlayerState): RankRow {
   const cols = ownedColonies(s, p.id);
+  const fashoda = s.fashoda.owner === p.id;
   let investment = cols.reduce((sum, c) => sum + s.colonies[c].invested, 0);
-  if (s.fashoda.owner === p.id) investment += SPECIAL_TILES.fashoda.price;
-  const colonies = cols.length + (s.fashoda.owner === p.id ? 1 : 0);
+  if (fashoda) investment += SPECIAL_TILES.fashoda.price;
+  const stages = cols.reduce((sum, c) => sum + s.colonies[c].stage, 0);
+  const v = RULES.victoryScore;
   return {
     id: p.id, cash: p.money, investment, loan: p.loan,
     total: p.bankrupt ? 0 : p.money + investment - p.loan,
-    colonies, bankrupt: p.bankrupt,
+    colonies: cols.length, stages, fashoda,
+    score: p.bankrupt ? 0 : cols.length * v.perColony + stages * v.perStage + (fashoda ? v.fashoda : 0),
+    bankrupt: p.bankrupt,
   };
 }
 
-/** 순위: 총자산 → 식민지 수. 파산국은 늦게 파산한 순서로 뒤에 */
+/** 순위: 식민지 점수 → 현금 − 대출 → 총자산. 파산국은 늦게 파산한 순서로 뒤에 */
 export function computeRanking(s: GameState): RankRow[] {
   const alive = alivePlayers(s).map((p) => assetRow(s, p));
-  alive.sort((a, b) => b.total - a.total || b.colonies - a.colonies);
+  alive.sort((a, b) => b.score - a.score || (b.cash - b.loan) - (a.cash - a.loan) || b.total - a.total);
   const dead = [...s.bankruptOrder].reverse().map((id) => assetRow(s, getPlayer(s, id)));
   return [...alive, ...dead];
 }
