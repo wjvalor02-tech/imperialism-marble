@@ -172,33 +172,47 @@ export const SPECIAL_TILES = {
   china: { name: '중국의 반식민지화', fee: 20, text: '중국 공동 식민통치기구에 20만원을 납부하고, 황금열쇠를 뽑는다.', // 조정: 황금열쇠 칸 추가
     historyNote: '열강의 조차지·세력권 분할, 의화단 운동 이후 신축 조약(1901).' },
   fashoda: { name: '파쇼다 사건', price: 200, toll: 50, // 밸런스 조정: 100 → 50 (영국 승률 52% 완화)
-    text: '게임 중 단 1회에 한해 영국이 파쇼다를 점령할 기회를 부여한다. 단, 프랑스에 200만원을 지불한다. 그 외의 경우에는 황금열쇠 칸으로 이용한다.',
+    text: '게임 중 단 1회에 한해 영국이 파쇼다를 점령할 기회를 부여한다. 단, 프랑스에 200만원을 지불한다. 그 외의 경우에는 황금열쇠 칸으로 이용한다. (영국이 점령한 뒤에는 다른 나라가 영국에 대금을 내고 황금열쇠를 뽑는다.)',
     historyNote: '1898년 종단 정책(영국)과 횡단 정책(프랑스)의 충돌, 프랑스 양보 → 1904년 영·프 협상.' },
 } as const;
 
-// ── 황금열쇠 (10장) ───────────────────────────────────────
+// ── 황금열쇠 (13장) ───────────────────────────────────────
+// 선생님 결정(조정 8): 식민지 매각 카드 삭제, 대출 500 → 200만원, 착취 강화는 식민지 수에 비례,
+// 저항 운동 2장·문호 개방·베를린 회의 추가
 export type GoldenKeyEffect =
   | 'WAR'            // 전쟁: 원하는 식민지 탈취 시도 (200만원)
-  | 'SELL_COLONY'    // 자신의 식민지 한 곳 매각
   | 'SABOTAGE'       // 적국 식민지 중요시설 파괴 (100만원) → 단계 1 하락으로 구현
-  | 'EXPLOIT'        // 착취 강화: 300만원 확보
+  | 'EXPLOIT'        // 착취 강화: 내 식민지 1곳마다 perColony만원
   | 'TOLL_EXEMPT'    // 적국 식민지 무역대금 1회 면제
   | 'DEFENSE'        // 방어 카드 (사용 시 200만원)
   | 'ALLIANCE'       // 동맹 2바퀴, 무역대금 반분
-  | 'LOAN';          // 500만원 대출, 1바퀴마다 50만원 상환
+  | 'LOAN'           // 대출, 1바퀴마다 50만원 상환
+  | 'RESISTANCE'     // 저항 운동: 뽑은 나라의 가장 많이 개발된 식민지 1단계 후퇴
+  | 'OPEN_DOOR'      // 문호 개방: 중국 공동 식민통치기구 적립금을 모두 받음
+  | 'BERLIN';        // 베를린 회의: 주인 없는 아프리카 식민지 1곳을 가격대로 바로 확보 (보관)
 
 export interface GoldenKey { id: string; effect: GoldenKeyEffect; text: string; cost?: number; gain?: number;
+  perColony?: number; // 식민지 1곳당 얻는 돈 (착취 강화)
+  reflect?: string;   // 카드를 뽑은 뒤 보여 줄 성찰 한 줄
   holdable: boolean } // holdable: 뽑은 뒤 보관했다가 나중에 사용 가능 여부
 
 export const GOLDEN_KEYS: GoldenKey[] = [
   { id: 'gk1',  effect: 'WAR',         cost: 200, holdable: true,  text: '원하는 지역을 식민지로 확보하기 위해 전쟁을 일으킬 수 있다. 단, 전쟁 비용으로 200만원을 지불해야 한다.' },
   { id: 'gk2',  effect: 'WAR',         cost: 200, holdable: true,  text: '원하는 지역을 식민지로 확보하기 위해 전쟁을 일으킬 수 있다. 단, 전쟁 비용으로 200만원을 지불해야 한다.' },
-  { id: 'gk3',  effect: 'SELL_COLONY',            holdable: true,  text: '자신의 식민지 중 한 곳을 매각하여 자금을 확보할 수 있다.' },
   { id: 'gk4',  effect: 'SABOTAGE',    cost: 100, holdable: true,  text: '적국 식민지의 중요시설을 파괴한다. 단, 전쟁 비용으로 100만원을 지불해야 한다.' },
-  { id: 'gk5',  effect: 'EXPLOIT',     gain: 300, holdable: false, text: '식민지의 착취 강도를 두 배 높인다. 그 효과로 300만원을 확보한다.' },
+  { id: 'gk5',  effect: 'EXPLOIT',     perColony: 30, holdable: false, text: '식민지의 착취 강도를 두 배 높인다. 내 식민지 1곳마다 30만원을 확보한다.',
+    reflect: '실제로는 강제노동·세금 강화로 현지인의 삶이 악화되었다.' },
   { id: 'gk6',  effect: 'TOLL_EXEMPT',            holdable: true,  text: '적국 식민지에 무역대금을 지불하지 않을 수 있다.' },
   { id: 'gk7',  effect: 'DEFENSE',     cost: 200, holdable: true,  text: '적국의 공격을 방어한다. 단, 전쟁 비용으로 200만원을 지불해야 한다.' },
   { id: 'gk8',  effect: 'DEFENSE',     cost: 200, holdable: true,  text: '적국의 공격을 방어한다. 단, 전쟁 비용으로 200만원을 지불해야 한다.' },
   { id: 'gk9',  effect: 'ALLIANCE',               holdable: true,  text: '특정 적국과 동맹을 맺을 수 있다. 단, 동맹기간은 2바퀴로 제한한다. (동맹은 거절될 수 있으며, 동맹 기간 중 무역대금은 반으로 나눈다.)' },
-  { id: 'gk10', effect: 'LOAN',        gain: 500, holdable: false, text: '국제은행으로부터 500만원의 자금을 대출받을 수 있다. 단, 대출받은 자금은 1바퀴마다 50만원씩 상환해야 한다.' },
+  { id: 'gk10', effect: 'LOAN',        gain: 200, holdable: false, text: '국제은행으로부터 200만원의 자금을 대출받을 수 있다. 단, 대출받은 자금은 1바퀴마다 50만원씩 상환해야 한다.' },
+  { id: 'gk11', effect: 'RESISTANCE',             holdable: false, text: '마지마지 봉기(1905, 독일령 동아프리카)·의화단 운동(1899, 중국)처럼 식민지 사람들이 지배에 맞서 일어났다. 내 식민지 중 가장 많이 개발된 곳의 식민화가 1단계 후퇴한다.',
+    reflect: '식민지 사람들은 가만히 있지 않았다. 저항은 아프리카·아시아 곳곳에서 일어났다.' },
+  { id: 'gk12', effect: 'RESISTANCE',             holdable: false, text: '세포이 항쟁(1857, 인도)·사모리 투레의 저항(1880~90년대, 서아프리카)처럼 식민지 사람들이 지배에 맞서 일어났다. 내 식민지 중 가장 많이 개발된 곳의 식민화가 1단계 후퇴한다.',
+    reflect: '식민지 사람들은 가만히 있지 않았다. 저항은 아프리카·아시아 곳곳에서 일어났다.' },
+  { id: 'gk13', effect: 'OPEN_DOOR',              holdable: false, text: '미국의 문호 개방 선언(1899): 중국에서 모든 열강이 똑같이 무역할 권리를 요구했다. 중국 공동 식민통치기구 적립금을 모두 받는다.',
+    reflect: '열강이 \'공평하게\' 나누자고 한 것은 중국의 이권이었다. 중국 사람들의 뜻은 묻지 않았다.' },
+  { id: 'gk14', effect: 'BERLIN',                 holdable: true,  text: '베를린 회의(1884~85): 유럽 열강이 아프리카 분할의 규칙을 정했다. 주인 없는 아프리카 식민지 1곳을 골라 확보 가격을 내고 바로 확보할 수 있다.',
+    reflect: '아프리카의 운명을 정한 이 회의에 아프리카 사람은 한 명도 초대받지 못했다.' },
 ];

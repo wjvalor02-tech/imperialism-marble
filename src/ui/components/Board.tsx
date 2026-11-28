@@ -7,6 +7,7 @@ import Tile from './Tile';
 
 interface Props {
   game: GameState;
+  shown: GameState; // 말 이동 연출 중에는 이동 전 상태 (최근 사건 표시용)
   disp: Record<PlayerId, number>;
   rolling: boolean;
   busy: boolean;
@@ -14,7 +15,7 @@ interface Props {
   onTile: (i: number) => void;
 }
 
-export default function Board({ game, disp, rolling, busy, walker, onTile }: Props) {
+export default function Board({ game, shown, disp, rolling, busy, walker, onTile }: Props) {
   const active = currentPlayer(game).id;
   return (
     <div className="board-wrap">
@@ -28,7 +29,7 @@ export default function Board({ game, disp, rolling, busy, walker, onTile }: Pro
             onClick={() => onTile(i)}
           />
         ))}
-        <CenterPanel game={game} rolling={rolling} busy={busy} />
+        <CenterPanel game={game} shown={shown} rolling={rolling} busy={busy} />
         <PieceLayer game={game} disp={disp} activeId={active} walker={walker} />
       </div>
     </div>

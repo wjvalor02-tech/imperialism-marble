@@ -1,6 +1,6 @@
 // 승리 기준을 바꾸면 어떻게 되는지 비교하는 시뮬레이션. 실행: npx tsx scripts/simulate-victory.ts
 // 게임 규칙·AI는 그대로 두고, 30분(72차례)이 끝난 시점의 순위만 여러 기준으로 다시 매긴다.
-import { COLONIES } from '../src/data/gameData';
+import { COLONIES, GOLDEN_KEYS } from '../src/data/gameData';
 import { chooseAiAction } from '../src/engine/ai';
 import { reduce } from '../src/engine/reducer';
 import { actorOf, assetRow, getPlayer } from '../src/engine/selectors';
@@ -11,6 +11,12 @@ declare const process: { env: Record<string, string | undefined> };
 const GAMES = Number(process.env.GAMES ?? 1000);
 const MAX_TURNS = Number(process.env.MAX_TURNS ?? 72);
 const ALL: PlayerId[] = ['UK', 'FRANCE', 'GERMANY', 'USA'];
+// OLD_CARDS=1: 카드 개편 전 구성과 비교 (새 카드 3종 빼고, 대출 500만원, 착취는 식민지당 75만원 ≈ 평균 300만원)
+if (process.env.OLD_CARDS === '1') {
+  const keep = GOLDEN_KEYS.filter((k) => !['RESISTANCE', 'OPEN_DOOR', 'BERLIN'].includes(k.effect));
+  GOLDEN_KEYS.splice(0, GOLDEN_KEYS.length, ...keep);
+  for (const k of GOLDEN_KEYS) { if (k.effect === 'LOAN') k.gain = 500; if (k.effect === 'EXPLOIT') k.perColony = 75; }
+}
 const NAME: Record<PlayerId, string> = { UK: '영', FRANCE: '프', GERMANY: '독', USA: '미' } as Record<PlayerId, string>;
 
 // ── 승리 기준 ─────────────────────────────────────────────

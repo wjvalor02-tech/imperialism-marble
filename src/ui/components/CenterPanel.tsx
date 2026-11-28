@@ -12,7 +12,7 @@ import Piece from './Piece';
  * 게임판 가운데: 제목·색 안내 / 로즈 거상(원본 PPT처럼 크게) / 최근 사건 한 줄.
  * 차례가 오면 주사위 창이 로즈 거상 위에 팝업으로 뜬다.
  */
-export default function CenterPanel({ game, rolling, busy }: { game: GameState; rolling: boolean; busy: boolean }) {
+export default function CenterPanel({ game, shown = game, rolling, busy }: { game: GameState; shown?: GameState; rolling: boolean; busy: boolean }) {
   const dispatch = useGame((s) => s.dispatch);
   const p = currentPlayer(game);
   const n = NATIONS[p.id];
@@ -22,7 +22,7 @@ export default function CenterPanel({ game, rolling, busy }: { game: GameState; 
   // 주사위가 구르고 말이 움직이는 동안(busy)에는 계속 보여 주고, 결정 창이 뜨면 숨김
   const showTurn = !game.pending || busy;
   // 황금열쇠 내용이 드러나는 기록(secret)은 모두가 보는 '최근'에 띄우지 않는다
-  const last = [...game.log].reverse().find((l) => l.kind !== 'turn' && !l.secret);
+  const last = [...shown.log].reverse().find((l) => l.kind !== 'turn' && !l.secret);
   const twoDice = (game.settings.diceCount ?? 1) >= 2;
 
   return (
@@ -71,7 +71,7 @@ export default function CenterPanel({ game, rolling, busy }: { game: GameState; 
 
       <p className="ticker" aria-live="polite">
         <b>최근</b> {last ? last.text : '주사위를 굴려 게임을 시작하세요.'}
-        {game.chinaPool > 0 && <span className="muted"> · 중국 공동 식민통치기구 적립금 {won(game.chinaPool)}</span>}
+        {shown.chinaPool > 0 && <span className="muted"> · 중국 공동 식민통치기구 적립금 {won(shown.chinaPool)}</span>}
       </p>
     </div>
   );

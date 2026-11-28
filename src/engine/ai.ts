@@ -6,7 +6,8 @@ import { getPlayer, isAllied, keyById, ownedColonies } from './selectors';
 import type { Action, GameState, PlayerId } from './types';
 
 const RESERVE = 60; // 무역대금·통행료에 대비해 남겨 두는 돈
-const KEY_PREF = ['EXPLOIT', 'WAR', 'TOLL_EXEMPT', 'DEFENSE', 'SABOTAGE', 'ALLIANCE', 'SELL_COLONY', 'LOAN'];
+// 퀴즈로 2장 중 고를 때의 선호 (저항 운동은 피함)
+const KEY_PREF = ['OPEN_DOOR', 'EXPLOIT', 'BERLIN', 'WAR', 'TOLL_EXEMPT', 'DEFENSE', 'SABOTAGE', 'ALLIANCE', 'LOAN', 'RESISTANCE'];
 
 export function chooseAiAction(s: GameState, me: PlayerId, rand: () => number = Math.random): Action {
   const pd = s.pending;
@@ -32,8 +33,10 @@ export function chooseAiAction(s: GameState, me: PlayerId, rand: () => number = 
           .sort((a, b) => ownedColonies(s, b.id).length - ownedColonies(s, a.id).length)[0];
         if (t) return { type: 'USE_KEY', cardId: id, targetPlayer: t.id };
       }
-      if (k.effect === 'SELL_COLONY' && p.money < RESERVE) {
-        const c = cheapestColony(s, me);
+      if (k.effect === 'BERLIN') {
+        // 살 수 있는 가장 비싼 주인 없는 아프리카 식민지
+        const c = Object.keys(s.colonies).filter((x) => !s.colonies[x].owner && COLONIES[x].region === 'africa' && p.money - COLONIES[x].price >= RESERVE)
+          .sort((a, b) => COLONIES[b].price - COLONIES[a].price)[0];
         if (c) return { type: 'USE_KEY', cardId: id, targetColonyId: c };
       }
     }

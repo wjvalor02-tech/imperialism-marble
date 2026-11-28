@@ -111,6 +111,7 @@ export default function DecisionModal({ game }: { game: GameState }) {
             → 무역대금 <b>{won(pd.amount)}</b>을 <Flag id={pd.owner} size={18} /> {nationName(pd.owner)}에 지불합니다.
           </p>
           {pd.allied && <p className="m-note">동맹 중이라 {won(pd.baseAmount)}의 절반만 냅니다.</p>}
+          {pd.then === 'DRAW_KEY' && <p className="m-note">🔑 대금을 낸 뒤 황금열쇠를 뽑습니다.</p>}
           <div className="btn-row">
             <button className="btn primary big" onClick={() => dispatch({ type: 'PAY_TOLL', useExempt: false })} autoFocus>지불</button>
             {canExempt && <button className="btn gold big" onClick={() => dispatch({ type: 'PAY_TOLL', useExempt: true })}>면제권 사용</button>}
@@ -169,10 +170,9 @@ export default function DecisionModal({ game }: { game: GameState }) {
           <p className="m-line">
             {pd.kept
               ? `「${keyTitle(pd.cardId)}」 카드를 보관했습니다. ${['TOLL_EXEMPT', 'DEFENSE'].includes(k.effect) ? '필요한 상황이 오면 사용할지 묻습니다.' : '다음 차례부터 주사위를 굴리기 전에 사용할 수 있습니다.'}`
-              : k.effect === 'LOAN' ? `국제은행에서 ${won(k.gain ?? 0)}을 빌렸습니다. 출발을 지날 때마다 ${won(game.settings.loanRepayment)}씩 갚습니다.`
-                : `${won(k.gain ?? 0)}을 얻었습니다.`}
+              : pd.result ?? ''}
           </p>
-          {k.effect === 'EXPLOIT' && <p className="m-note reflect">실제로는 강제노동·세금 강화로 현지인의 삶이 악화되었다.</p>}
+          {k.reflect && <p className="m-note reflect">{k.reflect}</p>}
           <div className="btn-row"><button className="btn primary big" onClick={() => dispatch({ type: 'ACK' })} autoFocus>확인{ctl?.hotseat ? ' (카드 덮기)' : ''}</button></div>
         </Modal>
       );

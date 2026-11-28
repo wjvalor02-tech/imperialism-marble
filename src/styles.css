@@ -765,3 +765,24 @@ body { word-break: keep-all; overflow-wrap: anywhere; }
 
 /* 더블로 얻은 추가 굴림 안내 */
 .turn-who .double-badge { display: inline-block; background: #c8372d; color: #fff; font-weight: 800; border-radius: 999px; padding: .1cqw .8cqw; }
+
+/* ── 황금열쇠 카드: 일러스트(뒷면) + 일러스트 위 양피지 글상자(앞면) ── */
+.keycard { width: 260px; height: auto; aspect-ratio: 560 / 773; }
+.keycard-back { background: #3a2508; padding: 0; overflow: hidden; border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+.keycard-back img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.keycard-front { background-size: cover; background-position: center; border: 0; border-radius: 14px; padding: 24% 8% 15%; font-size: 15px; line-height: 1.4;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35); justify-content: center; }
+.keycard-text { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%;
+  background: rgba(255, 248, 222, .93); border: 2px solid #b8901a; border-radius: 10px; padding: 10px; text-align: center; overflow: auto; }
+.keycard-text b { font-size: 22px; font-family: var(--serif); color: #5a3d00; }
+.keycard-text small { color: #6b520c; font-weight: 700; }
+@media (max-width: 700px) {
+  .keycard { width: 190px; height: auto; }
+  .keycard-text { gap: 4px; padding: 6px; }
+  .keycard-text b { font-size: 19px; }
+  .key-choice .keycard { width: 46%; height: auto; }
+}
+/* 5분 전 알림: 눌러서 닫을 수 있고, 6초 뒤 저절로 사라진다 */
+button.toast { border: 0; cursor: pointer; font: inherit; font-size: 20px; font-weight: 700; max-width: min(92vw, 760px); }
+button.toast span { margin-left: 10px; opacity: .8; }
+@media (max-width: 700px) { .keycard-front { padding: 24% 7% 14%; font-size: 13px; } }

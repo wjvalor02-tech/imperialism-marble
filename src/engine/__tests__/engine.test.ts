@@ -148,7 +148,7 @@ describe('출발·대출', () => {
     expect(money(s, 'UK')).toBe(1000 - 10 - 50);
   });
 
-  it('대출 카드를 뽑으면 500만원을 받는다', () => {
+  it('대출 카드를 뽑으면 200만원을 받는다', () => {
     let s = newGame();
     s.deck = [keyId('LOAN')];
     s.discard = [];
@@ -156,8 +156,8 @@ describe('출발·대출', () => {
     s.currentIdx = 3;
     s = roll(s, 1); // 파쇼다, 영국 아님 → 황금열쇠
     expect(s.pending).toMatchObject({ type: 'KEY_DRAWN', kept: false });
-    expect(money(s, 'USA')).toBe(1000);
-    expect(getPlayer(s, 'USA').loan).toBe(500);
+    expect(money(s, 'USA')).toBe(700);
+    expect(getPlayer(s, 'USA').loan).toBe(200);
   });
 });
 
@@ -261,7 +261,10 @@ describe('특수칸', () => {
     s = act(s, { type: 'ACK' });
     getPlayer(s, 'FRANCE').position = 8;
     s = roll(s, 1);
-    expect(s.pending).toMatchObject({ type: 'PAY_TOLL', amount: SPECIAL_TILES.fashoda.toll, owner: 'UK' });
+    expect(s.pending).toMatchObject({ type: 'PAY_TOLL', amount: SPECIAL_TILES.fashoda.toll, owner: 'UK', then: 'DRAW_KEY' });
+    s = act(s, { type: 'PAY_TOLL', useExempt: false });
+    expect(money(s, 'UK')).toBe(300 + SPECIAL_TILES.fashoda.toll);
+    expect(s.pending?.type).toBe('KEY_DRAWN'); // 대금을 낸 뒤 황금열쇠
   });
 
   it('파쇼다: 영국이 아니면 황금열쇠', () => {
@@ -285,7 +288,7 @@ describe('특수칸', () => {
     expect(s.pending?.type).toBe('KEY_CHOICE');
     const [a] = (s.pending as { cardIds: string[] }).cardIds;
     s = act(s, { type: 'CHOOSE_KEY', cardId: a });
-    expect(s.deck.length + s.discard.length + getPlayer(s, 'FRANCE').heldCards.length).toBe(10);
+    expect(s.deck.length + s.discard.length + getPlayer(s, 'FRANCE').heldCards.length).toBe(GOLDEN_KEYS.length);
   });
 });
 
@@ -326,13 +329,52 @@ describe('황금열쇠: 전쟁·방어·파괴·매각·동맹', () => {
     expect(money(s, 'UK')).toBe(400);
   });
 
-  it('식민지 매각은 투자액의 50%', () => {
+  it('베를린 회의: 주인 없는 아프리카 식민지만 가격대로 바로 확보', () => {
     let s = newGame();
-    own(s, 'egypt', 'UK', 1); // 70
-    getPlayer(s, 'UK').heldCards = [keyId('SELL_COLONY')];
-    s = act(s, { type: 'USE_KEY', cardId: keyId('SELL_COLONY'), targetColonyId: 'egypt' });
-    expect(s.colonies.egypt.owner).toBeNull();
-    expect(money(s, 'UK')).toBe(535);
+    getPlayer(s, 'UK').heldCards = [keyId('BERLIN')];
+    expect(reduce(s, { type: 'USE_KEY', cardId: keyId('BERLIN'), targetColonyId: 'india' })).toBe(s); // 아시아는 안 됨
+    s = act(s, { type: 'USE_KEY', cardId: keyId('BERLIN'), targetColonyId: 'egypt' });
+    expect(s.colonies.egypt.owner).toBe('UK');
+    expect(money(s, 'UK')).toBe(500 - COLONIES.egypt.price);
+    expect(getPlayer(s, 'UK').heldCards).toEqual([]);
+  });
+
+  it('저항 운동: 내 식민지 중 가장 많이 개발된 곳이 1단계 후퇴', () => {
+    let s = newGame();
+    own(s, 'egypt', 'USA', 1);
+    own(s, 'india', 'USA', 3);
+    s.deck = [keyId('RESISTANCE')];
+    s.discard = [];
+    getPlayer(s, 'USA').position = 8;
+    s.currentIdx = 3;
+    s = roll(s, 1); // 파쇼다 → 황금열쇠
+    expect(s.pending).toMatchObject({ type: 'KEY_DRAWN', kept: false });
+    expect(s.colonies.india.stage).toBe(2);
+    expect(s.colonies.egypt.stage).toBe(1);
+  });
+
+  it('문호 개방: 중국 적립금을 모두 받는다', () => {
+    let s = newGame();
+    s.chinaPool = 60;
+    s.deck = [keyId('OPEN_DOOR')];
+    s.discard = [];
+    getPlayer(s, 'USA').position = 8;
+    s.currentIdx = 3;
+    s = roll(s, 1);
+    expect(money(s, 'USA')).toBe(560);
+    expect(s.chinaPool).toBe(0);
+  });
+
+  it('착취 강화: 내 식민지 1곳마다 30만원', () => {
+    let s = newGame();
+    own(s, 'egypt', 'USA', 0);
+    own(s, 'india', 'USA', 0);
+    s.deck = [keyId('EXPLOIT')];
+    s.discard = [];
+    getPlayer(s, 'USA').position = 8;
+    s.currentIdx = 3;
+    s = roll(s, 1);
+    expect(money(s, 'USA')).toBe(560);
   });
 
   it('동맹 중에는 서로 무역대금이 절반', () => {
@@ -493,13 +535,15 @@ describe('출발 통과 시 일괄 개발 (밸런스 조정 규칙)', () => {
     expect(s.pending).toEqual({ type: 'BUY', colonyId: 'morocco' });
   });
 
-  it('같은 바퀴에 그 식민지에 도착해도 또 개발할 수 없다 (1바퀴 1단계)', () => {
+  it('출발 통과로 개발한 식민지라도 그 바퀴에 도착하면 한 번 더 개발할 수 있다', () => {
     let t = setup();
     getPlayer(t, 'UK').position = 23;
     t = roll(t, 3); // 23 → 2 (이집트)
     t = act(t, { type: 'DEVELOP_MANY', colonyIds: ['egypt'] });
-    expect(t.pending?.type).toBe('NOTICE');
-    expect((t.pending as { lines: string[] }).lines[0]).toContain('이번 바퀴');
+    expect(t.colonies.egypt.stage).toBe(1);
+    expect(t.pending).toEqual({ type: 'DEVELOP', colonyId: 'egypt' });
+    t = act(t, { type: 'DEVELOP_COLONY' });
+    expect(t.colonies.egypt.stage).toBe(2);
   });
 
   it('개발하지 않고 넘어갈 수 있다', () => {
@@ -572,6 +616,7 @@ describe('새 규칙: 더블·1곳 개발·식민지 수입·순서 추첨·황�
 
   it('착취·대출 카드의 돈 기록은 공개 화면에서 숨김(secret)', () => {
     let s = newGame();
+    own(s, 'egypt', 'USA', 0);
     s.deck = [keyId('EXPLOIT')];
     s.discard = [];
     getPlayer(s, 'USA').position = 8;

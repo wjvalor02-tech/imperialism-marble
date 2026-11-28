@@ -13,10 +13,9 @@ export default function CardTargetModal({ game, cardId, onClose }: { game: GameS
   const use = (a: Action) => { if (dispatch(a)) onClose(); };
 
   let options: { key: string; label: React.ReactNode; action: Action }[] = [];
-  if (k.effect === 'WAR' || k.effect === 'SABOTAGE' || k.effect === 'SELL_COLONY') {
-    const mine = k.effect === 'SELL_COLONY';
+  if (k.effect === 'WAR' || k.effect === 'SABOTAGE') {
     options = Object.entries(game.colonies)
-      .filter(([, c]) => c.owner && (mine ? c.owner === p.id : c.owner !== p.id))
+      .filter(([, c]) => c.owner && c.owner !== p.id)
       .map(([id, c]) => {
         const st = COLONIES[id].stages[c.stage];
         return {
@@ -25,11 +24,20 @@ export default function CardTargetModal({ game, cardId, onClose }: { game: GameS
           label: (
             <>
               <Flag id={c.owner!} size={16} /> <b>{COLONIES[id].name}</b>
-              <small>{st.name} · 대금 {won(st.toll)}{mine ? ` · 매각가 ${won(Math.floor(c.invested * game.settings.sellRatio))}` : ''}</small>
+              <small>{st.name} · 대금 {won(st.toll)}</small>
             </>
           ),
         };
       });
+  } else if (k.effect === 'BERLIN') {
+    // 주인 없는 아프리카 식민지
+    options = Object.entries(game.colonies)
+      .filter(([id, c]) => !c.owner && COLONIES[id].region === 'africa')
+      .map(([id]) => ({
+        key: id,
+        action: { type: 'USE_KEY', cardId, targetColonyId: id } as Action,
+        label: <><b>{COLONIES[id].name}</b><small>확보 가격 {won(COLONIES[id].price)}</small></>,
+      }));
   } else if (k.effect === 'ALLIANCE') {
     options = game.players
       .filter((x) => x.id !== p.id && !x.bankrupt && !isAllied(game, p.id, x.id))

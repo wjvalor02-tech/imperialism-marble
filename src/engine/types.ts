@@ -64,7 +64,7 @@ export type Pending =
   | { type: 'BUY'; colonyId: string }
   | { type: 'DEVELOP'; colonyId: string }
   | { type: 'START_DEVELOP'; colonyIds: string[]; then: Continuation } // 출발 통과: 개발할 식민지 고르기
-  | { type: 'PAY_TOLL'; colonyId: string; owner: PlayerId; amount: number; baseAmount: number; allied: boolean }
+  | { type: 'PAY_TOLL'; colonyId: string; owner: PlayerId; amount: number; baseAmount: number; allied: boolean; then?: Continuation } // then: 낸 뒤 할 일 (기본 차례 끝)
   | { type: 'FASHODA_OFFER' }
   | {
       type: 'NOTICE';
@@ -77,7 +77,7 @@ export type Pending =
       charges?: Charge[]; // 확인 시 납부
       then: Continuation;
     }
-  | { type: 'KEY_DRAWN'; cardId: string; kept: boolean }
+  | { type: 'KEY_DRAWN'; cardId: string; kept: boolean; result?: string } // result: 바로 쓰인 카드의 결과 한 줄
   | { type: 'KEY_CHOICE'; cardIds: [string, string] }
   | { type: 'QUIZ'; quizId: string }
   | { type: 'DEFENSE_PROMPT'; attacker: PlayerId; defender: PlayerId; colonyId: string }

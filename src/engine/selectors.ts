@@ -28,8 +28,9 @@ export const keyById = (id: string) => {
 };
 
 export const KEY_TITLES: Record<string, string> = {
-  WAR: '전쟁', SELL_COLONY: '식민지 매각', SABOTAGE: '중요시설 파괴', EXPLOIT: '착취 강화',
+  WAR: '전쟁', SABOTAGE: '중요시설 파괴', EXPLOIT: '착취 강화',
   TOLL_EXEMPT: '무역대금 면제', DEFENSE: '방어', ALLIANCE: '동맹', LOAN: '대출',
+  RESISTANCE: '저항 운동', OPEN_DOOR: '문호 개방', BERLIN: '베를린 회의',
 };
 export const keyTitle = (id: string) => KEY_TITLES[keyById(id).effect];
 

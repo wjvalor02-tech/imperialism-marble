@@ -34,15 +34,21 @@ export default function GameScreen({ game }: { game: GameState }) {
     else if (fresh.some((l) => l.kind === 'money' && l.to !== 'BANK' && l.to !== 'CHINA_POOL')) sound.coin();
   }, [game.logSeq]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 종료 5분 전 알림
+  // 종료 5분 전 알림: 띄우는 것과 닫는 것을 따로 둔다
+  // (예전에는 1초마다 타이머가 갱신되며 닫기 예약이 취소돼 알림이 계속 남아 게임판을 가렸음)
   const limit = game.settings.timeLimitMinutes * 60;
   useEffect(() => {
-    if (limit > 0 && limit - elapsed === 300) {
-      setToast('⏰ 수업 종료 5분 전입니다! 타이머가 끝나면 식민지 점수 1위가 승리합니다.');
-      const t = window.setTimeout(() => setToast(null), 8000);
-      return () => clearTimeout(t);
-    }
+    if (limit > 0 && limit - elapsed === 300) setToast('⏰ 수업 종료 5분 전입니다! 타이머가 끝나면 식민지 점수 1위가 승리합니다.');
   }, [elapsed, limit]);
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 6000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  // 말이 걷는 동안에는 나라 현황·최근 사건을 이동 전 상태로 보여 주고, 도착한 뒤에 결과를 반영한다
+  const shown = useRef(game);
+  if (!busy) shown.current = game;
 
   const canAct = !game.pending && !busy && control.canControl;
 
@@ -50,10 +56,10 @@ export default function GameScreen({ game }: { game: GameState }) {
     <ControlContext.Provider value={control}>
     <div className="game">
       <TopBar game={game} onHost={() => setHost(true)} />
-      {toast && <div className="toast" role="alert">{toast}</div>}
+      {toast && <button className="toast" role="alert" onClick={() => setToast(null)} title="눌러서 닫기">{toast} <span aria-hidden>✕</span></button>}
       <main className="game-main">
-        <Board game={game} disp={disp} rolling={rolling} busy={busy} walker={walker} onTile={(i) => { if (!game.pending && !busy) setTile(i); }} />
-        <PlayerPanel game={game} canAct={canAct} onUseCard={setCard} />
+        <Board game={game} shown={shown.current} disp={disp} rolling={rolling} busy={busy} walker={walker} onTile={(i) => { if (!game.pending && !busy) setTile(i); }} />
+        <PlayerPanel game={shown.current} canAct={canAct} onUseCard={setCard} />
       </main>
       {!busy && !host && <DecisionModal game={game} />}
       {tile !== null && !game.pending && <ColonyModal game={game} index={tile} onClose={() => setTile(null)} />}

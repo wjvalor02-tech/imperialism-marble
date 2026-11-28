@@ -130,7 +130,7 @@ function apply(s: GameState, a: Action): boolean {
         transfer(s, p.id, 'BANK', next.cost, `${col.name} ${next.name}`);
         c.stage += 1;
         c.invested += next.cost;
-        c.lastDevelopedLap = p.lap;
+        // 출발 통과 개발은 도착 개발과 별개: 이번 바퀴에 그 식민지에 도착하면 또 개발할 수 있다 (선생님 결정)
         addLog(s, { kind: 'event', player: p.id, text: `🏗 ${col.name}: ${next.name} (무역대금 ${won(next.toll)})` });
       }
       cont(s, pd.then);
@@ -148,13 +148,13 @@ function apply(s: GameState, a: Action): boolean {
         if (!card) return false;
         discardCard(s, p, card);
         addLog(s, { kind: 'key', player: p.id, text: `🎟 ${nationName(p.id)}, 무역대금 면제권 사용 (${tileName(p.position)} ${won(pd.amount)} 면제)` });
-        endTurn(s);
+        cont(s, pd.then ?? 'END_TURN');
         return true;
       }
       processCharges(s, p.id, [{
         to: pd.owner, amount: pd.amount, colonyId: pd.colonyId,
         reason: `${tileName(p.position)} 무역대금${pd.allied ? '(동맹 절반)' : ''}`,
-      }], 'END_TURN');
+      }], pd.then ?? 'END_TURN');
       return true;
     }
     case 'FASHODA': {
@@ -253,14 +253,24 @@ function apply(s: GameState, a: Action): boolean {
           });
           return true;
         }
-        case 'SELL_COLONY': {
+        case 'BERLIN': {
+          // 베를린 회의: 주인 없는 아프리카 식민지 1곳을 가격대로 바로 확보
           const cid = a.targetColonyId;
-          if (!cid || s.colonies[cid]?.owner !== p.id) return false;
+          const c = cid ? s.colonies[cid] : undefined;
+          if (!cid || !c || c.owner || COLONIES[cid].region !== 'africa' || p.money < COLONIES[cid].price) return false;
+          const col = COLONIES[cid];
           discardCard(s, p, a.cardId);
-          const price = sellColony(s, p.id, cid);
+          transfer(s, p.id, 'BANK', col.price, `${col.name} 확보 (베를린 회의)`);
+          c.owner = p.id;
+          c.stage = 0;
+          c.invested = col.price;
+          c.lastDevelopedLap = p.lap;
+          if (!c.everOwned.includes(p.id)) c.everOwned.push(p.id);
+          addLog(s, { kind: 'key', player: p.id, text: `📜 베를린 회의: ${nationName(p.id)}, ${col.name}을(를) 식민지로 확보` });
           notice(s, {
-            tone: 'info', icon: '💰', title: `${COLONIES[cid].name} 매각`,
-            lines: [`국제은행에 ${COLONIES[cid].name}을(를) 매각하고 ${won(price)}을 받았습니다.`], then: 'RESUME',
+            tone: 'history', icon: '📜', title: `베를린 회의 — ${col.name} 확보`,
+            lines: [`${won(col.price)}을 내고 ${col.name}을(를) ${nationName(p.id)}의 식민지로 확보했습니다.`],
+            note: keyById(a.cardId).reflect, then: 'RESUME',
           });
           return true;
         }
@@ -529,16 +539,16 @@ function resolveTile(s: GameState) {
     case 'fashoda': {
       const f = s.fashoda;
       if (!f.owner && !f.occupied && p.id === 'UK') s.pending = { type: 'FASHODA_OFFER' };
-      else if (f.owner && f.owner !== p.id) makeToll(s, p, 'fashoda', f.owner, SPECIAL_TILES.fashoda.toll);
+      else if (f.owner && f.owner !== p.id) makeToll(s, p, 'fashoda', f.owner, SPECIAL_TILES.fashoda.toll, 'DRAW_KEY'); // 대금을 내고 황금열쇠
       else drawKey(s);
       return;
     }
   }
 }
 
-function makeToll(s: GameState, p: PlayerState, colonyId: string, owner: PlayerId, base: number) {
+function makeToll(s: GameState, p: PlayerState, colonyId: string, owner: PlayerId, base: number, then?: Continuation) {
   const allied = isAllied(s, p.id, owner);
-  s.pending = { type: 'PAY_TOLL', colonyId, owner, baseAmount: base, allied, amount: allied ? Math.ceil(base / 2) : base };
+  s.pending = { type: 'PAY_TOLL', colonyId, owner, baseAmount: base, allied, amount: allied ? Math.ceil(base / 2) : base, ...(then ? { then } : {}) };
 }
 
 function nearestOwnColony(s: GameState, p: PlayerState): number {
@@ -627,13 +637,36 @@ function applyDrawn(s: GameState, id: string) {
     return;
   }
   // 금액·사유가 카드 내용을 드러내므로 공개 화면(최근 사건)에서는 숨긴다
-  if (k.effect === 'EXPLOIT') transfer(s, 'BANK', p.id, k.gain ?? 0, '착취 강화', true);
-  if (k.effect === 'LOAN') {
+  let result: string;
+  if (k.effect === 'EXPLOIT') {
+    const n = Object.values(s.colonies).filter((c) => c.owner === p.id).length;
+    const gain = n * (k.perColony ?? 0);
+    transfer(s, 'BANK', p.id, gain, '착취 강화', true);
+    result = n ? `내 식민지 ${n}곳 × ${won(k.perColony ?? 0)} = ${won(gain)}을 얻었습니다.` : '아직 식민지가 없어 얻은 돈이 없습니다.';
+  } else if (k.effect === 'LOAN') {
     transfer(s, 'BANK', p.id, k.gain ?? 0, '국제은행 대출', true);
     p.loan += k.gain ?? 0;
-  }
+    result = `국제은행에서 ${won(k.gain ?? 0)}을 빌렸습니다. 출발을 지날 때마다 ${won(s.settings.loanRepayment)}씩 갚습니다.`;
+  } else if (k.effect === 'OPEN_DOOR') {
+    const pool = s.chinaPool;
+    transfer(s, 'CHINA_POOL', p.id, pool, '문호 개방 (중국 적립금)', true);
+    result = pool ? `중국 공동 식민통치기구 적립금 ${won(pool)}을 모두 받았습니다.` : '아직 쌓인 적립금이 없습니다.';
+  } else if (k.effect === 'RESISTANCE') {
+    // 가장 많이 개발된 내 식민지 (같으면 무역대금이 큰 곳)
+    const cid = Object.keys(s.colonies).filter((c) => s.colonies[c].owner === p.id && s.colonies[c].stage > 0)
+      .sort((a, b) => s.colonies[b].stage - s.colonies[a].stage || COLONIES[b].stages[s.colonies[b].stage].toll - COLONIES[a].stages[s.colonies[a].stage].toll)[0];
+    if (cid) {
+      const c = s.colonies[cid];
+      const col = COLONIES[cid];
+      const lost = col.stages[c.stage];
+      c.invested -= lost.cost;
+      c.stage -= 1;
+      addLog(s, { kind: 'key', player: p.id, text: `✊ ${col.name}에서 저항 운동 — '${lost.name}' 후퇴`, secret: true });
+      result = `${col.name}에서 저항이 일어나 '${lost.name}'이(가) 무너졌습니다. 무역대금 ${won(lost.toll)} → ${won(col.stages[c.stage].toll)}`;
+    } else result = '아직 개발한 식민지가 없어 피해가 없었습니다.';
+  } else result = '';
   s.discard.push(id);
-  s.pending = { type: 'KEY_DRAWN', cardId: id, kept: false };
+  s.pending = { type: 'KEY_DRAWN', cardId: id, kept: false, ...(result ? { result } : {}) };
 }
 
 function endTurn(s: GameState) {

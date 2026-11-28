@@ -4,7 +4,7 @@ import type { GameState } from '../../engine/types';
 import { useCardVisibility } from '../useCardVisibility';
 import Flag from './Flag';
 
-const ACTIVE_USE = new Set(['WAR', 'SABOTAGE', 'SELL_COLONY', 'ALLIANCE']);
+const ACTIVE_USE = new Set(['WAR', 'SABOTAGE', 'ALLIANCE', 'BERLIN']);
 
 interface Props {
   game: GameState;

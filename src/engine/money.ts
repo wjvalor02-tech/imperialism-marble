@@ -19,6 +19,7 @@ export function transfer(s: GameState, from: Account, to: Account, amount: numbe
     if (p.money < amount) throw new Error(`${from} 잔액 부족: ${p.money} < ${amount}`);
     p.money -= amount;
   }
+  if (from === 'CHINA_POOL') s.chinaPool -= amount;
   if (to === 'CHINA_POOL') s.chinaPool += amount;
   else if (to !== 'BANK') getPlayer(s, to).money += amount;
   addLog(s, {
